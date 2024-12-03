@@ -193,7 +193,7 @@ test "Floating point division to integer test"
                 
                 if (fract > 0) {
                     std.debug.print(
-                        " | {d} | {d}e{d} | Fract is not 0 | {d} | 0 | measured: {d} |\n",
+                        " | {d} | {d}e{d} | Fract is not 0 | {d} | 0 | {d} |\n",
                         .{ rate, mult, iters, input_t, fract }
                     );
                     break;
