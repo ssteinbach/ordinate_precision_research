@@ -22,10 +22,21 @@ const std = @import("std");
 //        floating point number or the integer rational, where you need to
 //        renormalize, etc. to maintain precision behavior.
 
+const TABLE_HEADER_FP_SUM_PRODUCT = (
+\\ 
+\\ | rate | iterations | tolerance | wall clock time |
+\\ |------|------------|-----------|-----------------|
+);
+
 test "Floating point product vs Sum Test"
 {
     std.debug.print(
-        "\n\nFloat Type Exploration\nReports how many iterations before "
+        "\n\n# Ordinate Precision Exploration\n",
+        .{}
+    );
+
+    std.debug.print(
+        "\n\n## Float Type Exploration\nReports how many iterations before "
         ++ "the sum is not equal to the product by more than half a frame\n",
         .{}
     );
@@ -38,16 +49,14 @@ test "Floating point product vs Sum Test"
     inline for (
         &.{
             f32, 
-            f64,
+            // f64,
             // f128,
         }
     ) |T|
     {
         std.debug.print(
-            "\nType: {s}\n",
-            .{
-                @typeName(T),
-            },
+            "\n### Type: {s}\n{s}\n",
+            .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT},
         );
 
         for (
@@ -60,11 +69,6 @@ test "Floating point product vs Sum Test"
             }
         ) |rate|
         {
-            std.debug.print(
-                "  Rate: {d}\n",
-                .{ rate }
-            );
-
             for (
                 &[_]T{
                     1.0 / (rate*2),
@@ -96,14 +100,14 @@ test "Floating point product vs Sum Test"
                     ) 
                     {
                         var buf : [1024]u8 = undefined;
-                        const time_str = time_string(
+                        const time_str = try time_string(
                             &buf,
                             current,
                         );
 
                         std.debug.print(
-                            "     {d} iterations to hit tolerance: {d} ({s} @ {d}fps)\n",
-                            .{ iter, tolerance, time_str, rate }
+                            " | {d} | {d} | {d} | {s} |\n",
+                            .{ rate, iter, tolerance, time_str }
                         );
                         tolerance *= 10;
                         break;
@@ -132,10 +136,17 @@ fn time_string(
 }
 
 
+const TABLE_HEADER_TIME_TO_FRAME_N = (
+\\ 
+\\ | rate | iter | Failure | failure frame | expected | measured |
+\\ |------|------|---------|---------------|----------|----------|
+);
+
+
 test "Floating point division to integer test"
 {
     std.debug.print(
-        "\n\nTime to Frame Number Test\n"
+        "\n\n## Time to Frame Number Test\n"
         ++ "Measures if the correct integer frame number and phase offset can"
         ++ "be recovered from a large time value.\n"
         ,
@@ -150,7 +161,10 @@ test "Floating point division to integer test"
         }
     ) |T|
     {
-        std.debug.print("\nType: {s}\n", .{ @typeName(T)});
+        std.debug.print(
+            "\n### Type: {s}\n{s}\n",
+            .{ @typeName(T), TABLE_HEADER_TIME_TO_FRAME_N}
+        );
 
         for (
             &[_]T{
@@ -178,7 +192,7 @@ test "Floating point division to integer test"
                 
                 if (fract > 0) {
                     std.debug.print(
-                        "  Rate {d} [{d}e{d}] Fract is not 0 at: {d}, expected: 0 measured: {d}\n",
+                        " | {d} | {d}e{d} | Fract is not 0 | {d} | 0 | measured: {d} |\n",
                         .{ rate, mult, iters, input_t, fract }
                     );
                     break;
@@ -187,7 +201,7 @@ test "Floating point division to integer test"
                 if ( expected_t != measured) 
                 {
                     std.debug.print(
-                        "  Rate {d} [{d}e{d}] frame is wrong at: {d}, expected: {d} measured: {d}\n",
+                        " | {d} | {d}e{d} | frame is wrong | {d} |  {d} | {d} |\n",
                         .{ rate, mult,iters, input_t, expected_t, measured }
                     );
                     break;
@@ -196,4 +210,6 @@ test "Floating point division to integer test"
             }
         }
     }
+
+    std.debug.print("\n",.{});
 }
