@@ -116,6 +116,7 @@ test "Floating point product vs Sum Test"
             }
         }
     }
+    std.debug.print("\n",.{});
 }
 
 fn time_string(

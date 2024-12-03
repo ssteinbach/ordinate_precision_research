@@ -20,6 +20,7 @@ Reports how many iterations before the sum is not equal to the product by more t
  | 48000 | 42861 | 0.0005 | 0.893s |
  | 192000 | 8651 | 0.0000026041666 | 0.045s |
  | 192000 | 95880 | 0.0005 | 0.500s |
+
 OK
 2/2 inftest.test.Floating point division to integer test...
 
