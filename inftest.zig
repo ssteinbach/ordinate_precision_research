@@ -47,6 +47,7 @@ test "Floating point product vs Sum Test"
         &.{
             f32, 
             f64,
+            // not well supported outside of zig
             // f128,
         }
     ) |T|
