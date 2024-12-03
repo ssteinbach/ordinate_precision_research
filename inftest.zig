@@ -41,11 +41,6 @@ test "Floating point product vs Sum Test"
         .{}
     );
 
-     // if (true) {
-     //     // this test is good but takes a while, switching to other tests
-     //     return error.SkipZigTest;
-     // }
-
     inline for (
         &.{
             f32, 
@@ -71,16 +66,13 @@ test "Floating point product vs Sum Test"
         {
             for (
                 &[_]T{
+                    // half a frame
                     1.0 / (rate*2),
+                    // ms
                     5e-4,
                 }
             ) |MIN_TOLERANCE|
             {
-                // ms accuracy
-                // const MIN_TOLERANCE : T = 1.0 / (rate*2);
-
-                // const MIN_TOLERANCE : T = 4.9e-5;
-
                 const start : T = 0;
                 const increment : T = @floatCast(1.0 / rate);
                 var current : T = start;
@@ -126,13 +118,29 @@ fn time_string(
 {
     return (
         if (val < 60)
-            try std.fmt.bufPrint(buf, "{d:0.3}s", .{ val })
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}s",
+                .{ val }
+            )
         else if (val < 60 * 60)
-            try std.fmt.bufPrint(buf, "{d:0.3}m", .{ val / 60 })
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}m",
+                .{ val / 60 }
+            )
         else if (val < 60 * 60 * 24)
-            try std.fmt.bufPrint(buf, "{d:0.3}h", .{ val / (60 * 60) })
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}h",
+                .{ val / (60 * 60) }
+            )
         else 
-            try std.fmt.bufPrint(buf, "{d:0.3}d", .{ val / (60 * 60 * 24) })
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}d",
+                .{ val / (60 * 60 * 24) }
+            )
     );
 }
 
@@ -190,8 +198,9 @@ test "Floating point division to integer test"
                 const div = input_t / rate;
                 const measured:u128 = @intFromFloat(div);
                 const fract = div - @trunc(div);
-                
-                if (fract > 0) {
+
+                if (fract > 0) 
+                {
                     std.debug.print(
                         " | {d} | {d}e{d} | Fract is not 0 | {d} | 0 | {d} |\n",
                         .{ rate, mult, iters, input_t, fract }
@@ -199,14 +208,13 @@ test "Floating point division to integer test"
                     break;
                 }
 
-                if ( expected_t != measured) 
+                if (expected_t != measured) 
                 {
                     std.debug.print(
                         " | {d} | {d}e{d} | frame is wrong | {d} |  {d} | {d} |\n",
                         .{ rate, mult,iters, input_t, expected_t, measured }
                     );
                     break;
-                    // break;
                 }
             }
         }
