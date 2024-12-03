@@ -13,3 +13,9 @@ maintain precision over large time scales and under math.
 
 Construct double precision values that fail precision tests thus requiring an
 integer rational.
+
+## How to Use
+
+1. Install Zig 0.13.0
+2. run:
+`zig test inftest.zig`
