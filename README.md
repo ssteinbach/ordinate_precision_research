@@ -19,6 +19,12 @@ integer rational.
 1. Install Zig 0.13.0
 2. run:
 `zig test inftest.zig`
+or
+`make all`
+
+To update results:
+
+`make update`
 
 ## Results
 
