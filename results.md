@@ -40,7 +40,7 @@ OK
 2/2 inftest.test.Floating point division to integer test...
 
 ## Time to Frame Number Test
-Measures if the correct integer frame number and phase offset canbe recovered from a large time value.
+Measures if the correct integer frame number and phase offset can be recovered from a large time value.
 
 ### Type: f32
  
