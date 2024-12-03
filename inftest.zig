@@ -1,7 +1,24 @@
 //! A series of tests to explore floating point accuracy over large number
 //! ranges
+//!
+//! Falsifiable Hypothesis:
+//!
+//! Attempting to prove that a rational with an integer component is necessary
+//! to maintain precision over large time scales and under math.
+//!
+//! Methodology:
+//!
+//! Construct double precision values that fail precision tests thus requiring
+//! an integer rational.
+//!
 
 const std = @import("std");
+
+// @TODO: reintroduce the sin and cos blowing up test
+// @TODO: solicit feedback from folks in the community
+// @TODO: Write a specification/document that describes how to use either the
+//        floating point number or the integer rational, where you need to
+//        renormalize, etc. to maintain precision behavior.
 
 test "Floating point product vs Sum Test"
 {
