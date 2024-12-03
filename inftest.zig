@@ -49,7 +49,7 @@ test "Floating point product vs Sum Test"
     inline for (
         &.{
             f32, 
-            // f64,
+            f64,
             // f128,
         }
     ) |T|
