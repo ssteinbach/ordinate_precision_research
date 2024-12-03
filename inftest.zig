@@ -41,8 +41,7 @@ test "Floating point product vs Sum Test"
             f64,
             // f128,
         }
-    )
-        |T|
+    ) |T|
     {
         std.debug.print(
             "\nType: {s}\n",
@@ -59,8 +58,7 @@ test "Floating point product vs Sum Test"
                 48000.0,
                 192000.0,
             }
-        )
-            |rate|
+        ) |rate|
         {
             std.debug.print(
                 "  Rate: {d}\n",
@@ -72,8 +70,7 @@ test "Floating point product vs Sum Test"
                     1.0 / (rate*2),
                     5e-4,
                 }
-            )
-                |MIN_TOLERANCE|
+            ) |MIN_TOLERANCE|
             {
                 // ms accuracy
                 // const MIN_TOLERANCE : T = 1.0 / (rate*2);
@@ -99,15 +96,9 @@ test "Floating point product vs Sum Test"
                     ) 
                     {
                         var buf : [1024]u8 = undefined;
-                        const time_str = (
-                            if (current < 60)
-                                try std.fmt.bufPrint(&buf, "{d:0.3}s", .{ current })
-                            else if (current < 60 * 60)
-                                try std.fmt.bufPrint(&buf, "{d:0.3}m", .{ current / 60 })
-                            else if (current < 60 * 60 * 24)
-                                try std.fmt.bufPrint(&buf, "{d:0.3}h", .{ current / (60 * 60) })
-                            else 
-                                try std.fmt.bufPrint(&buf, "{d:0.3}d", .{ current / (60 * 60 * 24) })
+                        const time_str = time_string(
+                            &buf,
+                            current,
                         );
 
                         std.debug.print(
@@ -117,11 +108,6 @@ test "Floating point product vs Sum Test"
                         tolerance *= 10;
                         break;
                     }
-
-                   // if (current >= 60 * 60 * 24 * 4) {
-                    //     std.debug.print("      ...more than 4 days of time.\n", .{});
-                    //     break;
-                    // }
                 }
             }
         }
