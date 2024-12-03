@@ -1,5 +1,5 @@
 all:
-	time zig test -O ReleaseSafe inftest.zig
+	time zig test -O ReleaseSafe main.zig
 
 update:
-	zig test -O ReleaseSafe inftest.zig >& results.md
+	zig test -O ReleaseSafe main.zig >& results.md

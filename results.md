@@ -1,4 +1,4 @@
-1/2 inftest.test.Floating point product vs Sum Test...
+1/2 main.test.Floating point product vs Sum Test...
 
 # Ordinate Precision Exploration
 
@@ -37,7 +37,7 @@ Reports how many iterations before the sum is not equal to the product by more t
  | 192000 | 2254773172 | 0.0005 | 3.262h |
 
 OK
-2/2 inftest.test.Floating point division to integer test...
+2/2 main.test.Floating point division to integer test...
 
 ## Time to Frame Number Test
 Measures if the correct integer frame number and phase offset can be recovered from a large time value.

@@ -92,7 +92,7 @@ Test Case: Demonstrate exacerbation of error resulting from mixed mathematical o
 
 1. Install Zig 0.13.0
 2. run:
-`zig test inftest.zig`
+`zig test main.zig`
 or
 `make all`
 
