@@ -41,6 +41,8 @@ test "Floating point product vs Sum Test"
         .{}
     );
 
+    var buf : [1024]u8 = undefined;
+
     inline for (
         &.{
             f32, 
@@ -64,6 +66,8 @@ test "Floating point product vs Sum Test"
             }
         ) |rate|
         {
+            const increment : T = @floatCast(1.0 / rate);
+
             for (
                 &[_]T{
                     // half a frame
@@ -71,40 +75,33 @@ test "Floating point product vs Sum Test"
                     // ms
                     5e-4,
                 }
-            ) |MIN_TOLERANCE|
+            ) |tolerance|
             {
-                const start : T = 0;
-                const increment : T = @floatCast(1.0 / rate);
-                var current : T = start;
-                var iter : usize = 0;
-                var tolerance: T = MIN_TOLERANCE;
+                var current : T = 0;
+                var iter : T = 0;
 
-                while (tolerance < 0.1) 
-                    : ({iter += 1 ; current += increment;})
+                while (
+                    std.math.approxEqAbs(
+                        T,
+                        iter * increment,
+                        current,
+                        tolerance,
+                    )
+                )
                 {
-                    if (
-                        std.math.approxEqAbs(
-                            T,
-                            start + @as(T, @floatFromInt(iter)) * increment,
-                            current,
-                            tolerance
-                        ) == false
-                    ) 
-                    {
-                        var buf : [1024]u8 = undefined;
-                        const time_str = try time_string(
-                            &buf,
-                            current,
-                        );
-
-                        std.debug.print(
-                            " | {d} | {d} | {d} | {s} |\n",
-                            .{ rate, iter, tolerance, time_str }
-                        );
-                        tolerance *= 10;
-                        break;
-                    }
+                    iter += 1;
+                    current += increment;
                 }
+
+                const time_str = try time_string(
+                    &buf,
+                    current,
+                );
+
+                std.debug.print(
+                    " | {d} | {d} | {d} | {s} |\n",
+                    .{ rate, iter, tolerance, time_str }
+                );
             }
         }
     }
