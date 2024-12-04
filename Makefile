@@ -3,3 +3,6 @@ all:
 
 update:
 	zig test -O ReleaseSafe -I. main.zig >& results.md
+
+int:
+	zig test main.zig -I. --test-filter "rational"

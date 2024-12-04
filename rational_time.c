@@ -176,15 +176,16 @@ Rational32 rational64_normalize_to_32(int64_t num, uint64_t den)
             sign * (int32_t) rn, (uint32_t) rd };
     }
 
-    printf("Overflow %x %x\n", rn, rd);
+    //printf("Overflow %x %x\n", rn, rd);
     // shift rn and rd to the right to make them fit in 32 bits
     while ((rn > 0x7FFFFFFF) || (rd > 0xFFFFFFFF)) {
         rn >>= 1;
         rd >>= 1;
-        printf("         %x %x\n", rn, rd);
+        //printf("         %x %x\n", rn, rd);
     }
-    printf("Result %x %x\n", sign * (int32_t) rn, (uint32_t) rd);
-    printf(" in float %f\n", (float) sign * (float) rn / (float) rd);
+    //printf("Result %x %x\n", sign * (int32_t) rn, (uint32_t) rd);
+    //printf(" in int %f\n", (int32_t) rn);
+    //printf(" in float %f\n", (float) sign * (float) rn / (float) rd);
     return (Rational32) { 
         sign * (int32_t) rn, (uint32_t) rd };
 }
@@ -197,11 +198,15 @@ Rational32 rational32_force_den(Rational32 r, uint32_t den)
 
 Rational32 rational32_add(Rational32 lh, Rational32 rh)
 {
+    int32_t lhsign = lh.num < 0 ? -1 : 1;
+    uint32_t lhn = lhsign ? -lh.num : lh.num;
+    int32_t rhsign = rh.num < 0 ? -1 : 1;
+    uint32_t rhn = rhsign ? -rh.num : rh.num;
     uint32_t g = gcd32(lh.den, rh.den);
     uint32_t den = lh.den / g;
-    uint32_t num = lh.num * (rh.den / g) + rh.num * den;
-    g = gcd32(num, g);
-    return (Rational32) { num / g, den * rh.den / g };
+    uint64_t num = lhn * (rh.den / g) + rhn * den;
+    uint64_t g2 = gcd64(num, g);
+    return rational64_normalize_to_32( num / g2, den * rh.den / g2 );
 }
 
 Rational32 rational32_negate(Rational32 r)
