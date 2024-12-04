@@ -307,6 +307,7 @@ fn time_string(
              .{ @typeName(T), TARGET_EPSILON, i, try time_string(&buf, time_to_err_s), cycles_per_s }
          );
      }
+     std.debug.print("\n",.{});
  }
 
  const TABLE_HEADER_RAT_SUM_PROD = (
