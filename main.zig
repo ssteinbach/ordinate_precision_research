@@ -17,8 +17,8 @@ const std = @import("std");
 
 const TABLE_HEADER_FP_SUM_PRODUCT = (
 \\ 
-\\ | rate | iterations | tolerance | wall clock time |
-\\ |------|------------|-----------|-----------------|
+\\ | rate | iterations | tolerance | wall clock time | iterations/s |
+\\ |------|------------|-----------|-----------------|--------------|
 );
 
 test "Floating point product vs Sum Test"
@@ -71,6 +71,8 @@ test "Floating point product vs Sum Test"
                 }
             ) |tolerance|
             {
+                var t_start = try std.time.Timer.start();
+
                 var current : T = 0;
                 var iter : T = 0;
 
@@ -87,20 +89,24 @@ test "Floating point product vs Sum Test"
                     current += increment;
                 }
 
+                const compute_time_s = @as(T, @floatFromInt(t_start.read())) / std.time.ns_per_s;
+                const cycles_per_s = iter / compute_time_s;
+
                 const time_str = try time_string(
                     &buf,
                     current,
                 );
 
                 std.debug.print(
-                    " | {d} | {d} | {d} | {s} |\n",
-                    .{ rate, iter, tolerance, time_str }
+                    " | {d} | {d} | {d} | {s} | {e:0.2} |\n",
+                    .{ rate, iter, tolerance, time_str, cycles_per_s }
                 );
             }
         }
     }
     std.debug.print("\n",.{});
 }
+
 
 fn time_string(
     buf: []u8,
