@@ -21,6 +21,22 @@ const TABLE_HEADER_FP_SUM_PRODUCT = (
 \\ |------|------------|-----------|-----------------|--------------|
 );
 
+const TYPES = &.{
+    f32,
+    f64,
+    // f128,
+};
+
+const RATES = [_]comptime_float{
+    24.0,
+    24.0 * 1000.0 / 1001.0,
+    30.0 * 1000.0 / 1001.0,
+    120,
+    44100.0,
+    48000.0,
+    192000.0,
+};
+
 test "Floating point product vs Sum Test"
 {
     std.debug.print(
@@ -36,14 +52,8 @@ test "Floating point product vs Sum Test"
 
     var buf : [1024]u8 = undefined;
 
-    inline for (
-        &.{
-            f32, 
-            f64,
-            // not well supported outside of zig
-            // f128,
-        }
-    ) |T|
+    inline for (TYPES) 
+        |T|
     {
         std.debug.print(
             "\n### Type: {s}\n{s}\n",
@@ -51,10 +61,12 @@ test "Floating point product vs Sum Test"
         );
 
         for (
-            &[_]T{ 
+            [_]T{
                 24.0,
                 24.0 * 1000.0 / 1001.0,
+                30.0 * 1000.0 / 1001.0,
                 120,
+                44100.0,
                 48000.0,
                 192000.0,
             }
@@ -142,11 +154,93 @@ fn time_string(
 }
 
 
-const TABLE_HEADER_TIME_TO_FRAME_N = (
-\\ 
-\\ | rate | iter | Failure | failure frame | expected | measured |
-\\ |------|------|---------|---------------|----------|----------|
-);
+ const TABLE_HEADER_TIME_TO_FRAME_N = (
+ \\ 
+ \\ | rate | iter | Failure | failure frame | expected | measured | iter/s |
+ \\ |------|------|---------|---------------|----------|----------|--------|
+ );
+
+
+ test "Floating point division to integer test"
+ {
+     std.debug.print(
+         "\n\n## Time to Frame Number Test\n"
+         ++ "Measures if the correct integer frame number and phase offset can"
+         ++ " be recovered from a large time value.\n"
+         ,
+         .{}
+     );
+
+     inline for ( 
+         &.{
+             // f16,
+             f32, 
+             f64,
+         }
+     ) |T|
+     {
+         std.debug.print(
+             "\n### Type: {s}\n{s}\n",
+             .{ @typeName(T), TABLE_HEADER_TIME_TO_FRAME_N}
+         );
+
+         for (
+             &[_]T{
+                 24.0,
+                 24.0*1000.0/1001.0,
+                 25.0,
+                 30.0*1000.0/1001.0,
+                 120,
+                 44100,
+                 48000,
+                 192000,
+             }
+         ) |rate|
+         {
+             var input_t:T = rate;
+             var expected_t:u128 = 1.0;
+
+             var iters:usize = 0;
+             const mult = 10; 
+
+             var t_start = try std.time.Timer.start();
+
+             var measured : u128 = undefined;
+             var msg : []const u8 = undefined;
+
+             while (true)
+                 : ({ input_t *= mult; expected_t *= mult; iters+=1; })
+             {
+                 const div = input_t / rate;
+                 measured = @intFromFloat(div);
+                 const fract = div - @trunc(div);
+
+                 if (fract > 0) 
+                 {
+                     msg = "Fract is not 0";
+                     expected_t = 0;
+                     break;
+                 }
+
+                 if (expected_t != measured) 
+                 {
+                     msg = "frame is wrong";
+                     break;
+                 }
+             }
+
+             const compute_time_s = @as(T, @floatFromInt(t_start.read())) / std.time.ns_per_s;
+             const cycles_per_s = @as(T, @floatFromInt(iters)) / compute_time_s;
+
+             std.debug.print(
+                 " | {d} | {d}e{d} | {s} | {d} |  {d} | {d} | {e:0.2} | \n",
+                 .{ rate, mult, iters, msg, input_t, expected_t, measured, cycles_per_s }
+             );
+         }
+     }
+
+     std.debug.print("\n",.{});
+ }
 
 
 test "Floating point division to integer test"
