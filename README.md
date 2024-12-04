@@ -8,7 +8,7 @@ See the machine generated results from the code in this repo: [results.md](resul
 
 ## Introduction
 
-It is common lore that timelines such as those found in editorial NLEs must be represented by rational integers. In order to prove this we will hit the lore with the rational sledgehammer of the scientific method by constructing a falsifiable hypothesis, H, that a floating point value is sufficient to the purpose. Results to date are provided below which are not sufficient to disprove the hypothesis.
+It is common lore that timelines such as those found in editorial NLEs must represent time ordinates with rational integers. In order to prove this we will hit the lore with the rational sledgehammer of the scientific method by constructing a falsifiable hypothesis, H, that a floating point value is sufficient to the purpose. Results to date are provided below which are not sufficient to disprove the hypothesis.
 
 We investigate where the idea comes from that integer rationals are required for time computations, and what tests might we add to falsify the hypothesis H?
 
