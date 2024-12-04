@@ -85,9 +85,6 @@ Test Case: Verify sub-frame accuracy over long durations
 
 Test Case: Demonstrate exacerbation of error resulting from mixed mathematical oeprations.
 
-
-
-
 ## How to Use
 
 1. Install Zig 0.13.0
@@ -103,3 +100,19 @@ To update results:
 ## Results
 
 See: [results.md](results.md)
+
+## Todo List
+
+* [ ] Integrate c rational time
+    * [ ] write rational test
+* [ ] Specification for the double and its constraints if that is where we land
+  (where it should be renormalized, etc)
+* [ ] talk about the sparsity of number representation of integer rationals vs floats
+* [ ] Copy the numeric limits section of the spreadsheets into a markdown table
+  into this readme
+* [ ] Sin and Cos tests
+    * [ ] 
+## References
+
+1. Original OpenTimelineIO research on Ordinate types in editorial formats: https://docs.google.com/spreadsheets/d/1JMwBMJuAUEzJFfPHUnI1AbFgIWuIdBkzVEUF80cx6l4/edit?usp=sharing
+2. Inigo Quilez Experiments with Rational Number based rendering: https://iquilezles.org/articles/floatingbar/

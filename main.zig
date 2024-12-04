@@ -14,13 +14,6 @@
 
 const std = @import("std");
 
-// @TODO: add a readme that describes this, has links to the old spreadsheet
-//        and can serve as the starting point for a spec/document
-// @TODO: reintroduce the sin and cos blowing up test
-// @TODO: solicit feedback from folks in the community
-// @TODO: Write a specification/document that describes how to use either the
-//        floating point number or the integer rational, where you need to
-//        renormalize, etc. to maintain precision behavior.
 
 const TABLE_HEADER_FP_SUM_PRODUCT = (
 \\ 
