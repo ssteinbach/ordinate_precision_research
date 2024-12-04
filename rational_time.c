@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-
+#include <stdio.h>
 /*
  * Rational32
  *
@@ -37,6 +37,34 @@ typedef struct {
 uint32_t gcd32(uint32_t u, uint32_t v) 
 {
     uint32_t shl = 0;
+    if (u == 0) return v;
+    if (v == 0) return u;
+    if (u == v) return u;
+
+    while ((u != 0) && (v != 0) && (u != v)) {
+        bool eu = (u&1) == 0;
+        bool ev = (v&1) == 0;
+        if (eu && ev) {
+            shl += 1;
+            v >>= 1;
+            u >>= 1;
+        }
+        else if (eu && !ev) { u >>= 1; }
+        else if (!eu && ev) { v >>= 1; }
+        else if (u > v)     { u = (u - v) >> 1; }
+        else {
+            uint32_t temp = u;
+            u = (v - u ) >> 1;
+            v = temp;
+        }
+    }
+    if (u == 0) return v << shl;
+    return u << shl;
+}
+
+uint64_t gcd64(uint64_t u, uint64_t v) 
+{
+    uint64_t shl = 0;
     if (u == 0) return v;
     if (v == 0) return u;
     if (u == v) return u;
@@ -122,11 +150,43 @@ Rational32 rational32_normalize(Rational32 r)
 {
     if (r.num == 0 || r.num == 1 || r.den == 1 || r.den == 0) 
         return r;
+    if (r.num == r.den)
+        return (Rational32) { 1, 1 };
     uint32_t n = r.num < 0 ? -r.num : r.num;
     uint32_t denom = gcd32(n, r.den);
-    int32_t sign = r.num < 0 ? -1 : 1;
     return (Rational32) { 
         r.num / denom, r.den / denom };
+}
+
+Rational32 rational64_normalize_to_32(int64_t num, uint64_t den)
+{
+    if (num == 0 || num == 1 || den == 1 || den == 0) 
+        return (Rational32) { (int32_t) num, (uint32_t) den };
+    if (num == den)
+        return (Rational32) { 1, 1 };
+    int32_t sign = num < 0 ? -1 : 1;
+    uint64_t n = num < 0 ? -num : num;
+    uint64_t denom = gcd64(n, den);
+    uint64_t rn = n / denom;
+    uint64_t rd = den / denom;
+
+    // check if the result fits in 32 bits
+    if ((rn < 0x7FFFFFFF) && (rd < 0xFFFFFFFF)) {
+        return (Rational32) { 
+            sign * (int32_t) rn, (uint32_t) rd };
+    }
+
+    printf("Overflow %x %x\n", rn, rd);
+    // shift rn and rd to the right to make them fit in 32 bits
+    while ((rn > 0x7FFFFFFF) || (rd > 0xFFFFFFFF)) {
+        rn >>= 1;
+        rd >>= 1;
+        printf("         %x %x\n", rn, rd);
+    }
+    printf("Result %x %x\n", sign * (int32_t) rn, (uint32_t) rd);
+    printf(" in float %f\n", (float) sign * (float) rn / (float) rd);
+    return (Rational32) { 
+        sign * (int32_t) rn, (uint32_t) rd };
 }
 
 Rational32 rational32_force_den(Rational32 r, uint32_t den)
@@ -159,11 +219,11 @@ Rational32 rational32_mul(Rational32 lh, Rational32 rh)
     int32_t sign = rational32_sign(lh) * rational32_sign(rh);
     Rational32 lhu = rational32_abs(lh);
     Rational32 rhu = rational32_abs(rh);
-    uint32_t g1 = gcd32(lhu.num, lhu.den);
-    uint32_t g2 = gcd32(rhu.num, rhu.den);
-    return rational32_normalize( (Rational32) {
-        sign * ((lhu.num / g1) * rhu.num) / g2,
-               ((lhu.den / g2) * rhu.den) / g1 });
+    uint64_t g1 = gcd32(lhu.num, lhu.den);
+    uint64_t g2 = gcd32(rhu.num, rhu.den);
+    int64_t rn = sign * ((lhu.num / g1) * rhu.num) / g2;
+    uint64_t rd = ((lhu.den / g2) * rhu.den) / g1;
+    return rational64_normalize_to_32( rn, rd );
 }
 
 Rational32 rational32_inverse(Rational32 r)
@@ -436,125 +496,118 @@ int32_t tinterval32_rate_frames(TimeInterval32 a)
     return rational32_floor(frames);
 }
 
-
+#ifdef HAVE_MUNIT
 #include <stdio.h>
-// #include "munit.h"
-// #include "munit.c"
+#include "munit.h"
+#include "munit.c"
 
-// void rational32_tests()
-// {
-//     // gcd
-//     munit_assert(gcd32(120, 16) == 8);
-//     munit_assert(gcd32(38400, 12000) == 2400);
-//     munit_assert(gcd32(11, 7) == 1);
-//     munit_assert(gcd32(8, 2) == 2);
-//     munit_assert(gcd32(22000, 33000) == 11000);
-//     munit_assert(gcd32(12800, 1600) == 1600); 
-//
-//     // lcm32u
-//     munit_assert(lcm32u(8, 2) == 8);
-//     munit_assert(lcm32u(11, 7) == 77); 
-//     munit_assert(lcm32u(24, 16) == 48);
-//
-//     // lcm32
-//     munit_assert(lcm32(8, 2) == 8);
-//     munit_assert(lcm32(11, 7) == 77); 
-//     munit_assert(lcm32(24, 16) == 48);
-//
-//     // Rational32 creation
-//     Rational32 a = rational32_create(32, 4);
-//     Rational32 b = rational32_create(-1, 99);
-//     Rational32 c = rational32_create(1, -99);
-//     Rational32 d = rational32_create(-11, -7);
-//     Rational32 e = rational32_create(38400, 24);
-//     Rational32 f = rational32_create(1600, 1);
-//     Rational32 g = rational32_create(100 * 24000, 1000);
-//     Rational32 h = rational32_create(100 * 24000, 1001);
-//
-//     munit_assert(a.num == 8 && a.den == 1);
-//     munit_assert(b.num == -1 && b.den == 99);
-//     munit_assert(c.num == -1 && c.den == 99);
-//     munit_assert(d.num == 11 && d.den == 7);
-//     munit_assert(e.num == 1600 && e.den == 1);
-//
-//     #define norm(a) rational32_normalize((a))
-//     #define eq(a,b) rational32_equal((a), (b))
-//     #define lt(a, b) rational32_less_than((a), (b))
-//     #define lti(a, b) rational32_less_than_int((a), (b))
-//     #define add(a, b) rational32_add((a), (b))
-//     #define mul(a, b) rational32_mul((a), (b))
-//     #define div(a, b) rational32_div((a), (b))
-//
-//     // normalization
-//     munit_assert(eq(b,c));
-//     munit_assert(eq(e,f));
-//     Rational32 n0 = { 12800, 1600 };
-//     Rational32 n1 = norm(n0);
-//     munit_assert(n1.num == 8 && n1.den == 1);
-//
-//     // equality
-//     munit_assert(!eq(a, b));
-//     munit_assert(!eq(c, d));
-//
-//     // add
-//     Rational32 a1 = add(e, f);
-//     Rational32 a2 = rational32_create(3200, 1);
-//     munit_assert(eq(a1, a2));
-//
-//     Rational32 a3 = { 12345, 1001 };
-//     Rational32 a4 = { 12345, 1000 };
-//     Rational32 a5 = { 24702345, 1001000 };
-//     Rational32 a6 = add(a3, a4);
-//     munit_assert(eq(a5, a6));
-//
-//      // less than
-//     munit_assert( lt(b, a));
-//     munit_assert(!lt(a, b));
-//     munit_assert(!lt(e, f));
-//     munit_assert( lt(d, a));
-//     munit_assert(!lt(a, d));
-//     munit_assert( lt(a, f));
-//     munit_assert(!lt(f, a));
-//     munit_assert( lt(h, g));
-//     munit_assert(!lt(g, h));
-//     munit_assert( lti(a3, 13));
-//     munit_assert(!lti(a4, 12));
-//     munit_assert( lti(a4, 13));
-//     munit_assert(!lti(a6, 24));
-//     munit_assert( lti(a6, 25));
-//
-//
-//    // mul
-//     Rational32 k = mul(a, f);
-//     Rational32 l = rational32_create(8 * 1600, 1);
-//     munit_assert(eq(k, l));
-//
-//     // div
-//     Rational32 m = norm(div(l, f));
-//     munit_assert(eq(a, m));
-//
-//     // time intervals
-//     TimeInterval32 t1 = (TimeInterval32) {
-//         (Rational32) { 0, 1 },
-//         (Rational32) { 1, 1 },
-//         (Rational32) { 1, 24 } };
-//     Rational32 dur1 = { 1, 1 };
-//     munit_assert(eq(tinterval32_duration(t1), dur1));
-//
-//     TimeInterval32 t2 = (TimeInterval32) {
-//         (Rational32) { 0, 1 },
-//         (Rational32) { 101, 100 },
-//         (Rational32) { 1, 24 } };
-//     TimeInterval32 t3 = tinterval32_rate_conform(t2);
-//     munit_assert(eq(tinterval32_duration(t3), dur1));
-//     munit_assert(tinterval32_rate_frames(t2) == 24);
-//
-//
-//  }
-//
-// int main()
-// {
-//     rational32_tests();
-//     return 0;
-// }
+void rational32_tests()
+{
+    // gcd
+    munit_assert(gcd32(120, 16) == 8);
+    munit_assert(gcd32(38400, 12000) == 2400);
+    munit_assert(gcd32(11, 7) == 1);
+    munit_assert(gcd32(8, 2) == 2);
+    munit_assert(gcd32(22000, 33000) == 11000);
+    munit_assert(gcd32(12800, 1600) == 1600); 
 
+    // lcm32u
+    munit_assert(lcm32u(8, 2) == 8);
+    munit_assert(lcm32u(11, 7) == 77); 
+    munit_assert(lcm32u(24, 16) == 48);
+
+    // lcm32
+    munit_assert(lcm32(8, 2) == 8);
+    munit_assert(lcm32(11, 7) == 77); 
+    munit_assert(lcm32(24, 16) == 48);
+
+    // Rational32 creation
+    Rational32 a = rational32_create(32, 4);
+    Rational32 b = rational32_create(-1, 99);
+    Rational32 c = rational32_create(1, -99);
+    Rational32 d = rational32_create(-11, -7);
+    Rational32 e = rational32_create(38400, 24);
+    Rational32 f = rational32_create(1600, 1);
+    Rational32 g = rational32_create(100 * 24000, 1000);
+    Rational32 h = rational32_create(100 * 24000, 1001);
+
+    munit_assert(a.num == 8 && a.den == 1);
+    munit_assert(b.num == -1 && b.den == 99);
+    munit_assert(c.num == -1 && c.den == 99);
+    munit_assert(d.num == 11 && d.den == 7);
+    munit_assert(e.num == 1600 && e.den == 1);
+
+    #define norm(a) rational32_normalize((a))
+    #define eq(a,b) rational32_equal((a), (b))
+    #define lt(a, b) rational32_less_than((a), (b))
+    #define lti(a, b) rational32_less_than_int((a), (b))
+    #define add(a, b) rational32_add((a), (b))
+    #define mul(a, b) rational32_mul((a), (b))
+    #define div(a, b) rational32_div((a), (b))
+
+    // normalization
+    munit_assert(eq(b,c));
+    munit_assert(eq(e,f));
+    Rational32 n0 = { 12800, 1600 };
+    Rational32 n1 = norm(n0);
+    munit_assert(n1.num == 8 && n1.den == 1);
+
+    // equality
+    munit_assert(!eq(a, b));
+    munit_assert(!eq(c, d));
+
+    // add
+    Rational32 a1 = add(e, f);
+    Rational32 a2 = rational32_create(3200, 1);
+    munit_assert(eq(a1, a2));
+
+    Rational32 a3 = { 12345, 1001 };
+    Rational32 a4 = { 12345, 1000 };
+    Rational32 a5 = { 24702345, 1001000 };
+    Rational32 a6 = add(a3, a4);
+    munit_assert(eq(a5, a6));
+
+    // less than
+    munit_assert( lt(b, a));
+    munit_assert(!lt(a, b));
+    munit_assert(!lt(e, f));
+    munit_assert( lt(d, a));
+    munit_assert(!lt(a, d));
+    munit_assert( lt(a, f));
+    munit_assert(!lt(f, a));
+    munit_assert( lt(h, g));
+    munit_assert(!lt(g, h));
+    munit_assert( lti(a3, 13));
+    munit_assert(!lti(a4, 12));
+    munit_assert( lti(a4, 13));
+    munit_assert(!lti(a6, 24));
+    munit_assert( lti(a6, 25));
+   // mul
+    Rational32 k = mul(a, f);
+    Rational32 l = rational32_create(8 * 1600, 1);
+    munit_assert(eq(k, l));
+    // div
+    Rational32 m = norm(div(l, f));
+    munit_assert(eq(a, m));
+    // time intervals
+    TimeInterval32 t1 = (TimeInterval32) {
+        (Rational32) { 0, 1 },
+        (Rational32) { 1, 1 },
+        (Rational32) { 1, 24 } };
+    Rational32 dur1 = { 1, 1 };
+    munit_assert(eq(tinterval32_duration(t1), dur1));
+    TimeInterval32 t2 = (TimeInterval32) {
+        (Rational32) { 0, 1 },
+        (Rational32) { 101, 100 },
+        (Rational32) { 1, 24 } };
+    TimeInterval32 t3 = tinterval32_rate_conform(t2);
+    munit_assert(eq(tinterval32_duration(t3), dur1));
+    munit_assert(tinterval32_rate_frames(t2) == 24);
+ }
+
+int main()
+{
+    rational32_tests();
+    return 0;
+}
+#endif // HAVE_MUNIT
