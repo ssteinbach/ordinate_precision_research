@@ -107,12 +107,11 @@ See: [results.md](results.md)
 
 * [ ] Specification for the double and its constraints if that is where we land
   (where it should be renormalized, etc)
-* [ ] Sin and Cos tests
 
 
 ## Appendix: Data limits of number types
 
-| Type | Bits of Integer Precision | Maximum Integer Value | Max Integer Hours@192KHz | Max Integer Years@192Hz |
+| Type | Bits of Integer Precision | Maximum Integer Value | Max Integer Hours@192KHz (~5.2µs) | Max Integer Years@192Hz (~5.2µs) |
 |------|---------------------------|-----------------------|--------------------------|-------------------------|
 | int32_t | 31 | 2147483647 | 3.10689185 | 0.0003546680195 |
 | uint32_t | 32 | 4294967295 | 6.213783702 | 0.0007093360391 |
