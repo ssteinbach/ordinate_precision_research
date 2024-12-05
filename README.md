@@ -2,9 +2,15 @@
 
 Porcino & Steinbach, Dec 2024
 
-## TL;DR - Results
+## Abstract
 
-See the machine generated results from the code in this repo: [results.md](results.md)
+We investigate common assumptions about the representation of time values as an ordinate on a number line, and the impact of representation on computations.
+
+We show the largest values representable, and when the math on various reprsentations stops being exact to various degrees, such as being off by a millisecond, or a half of a frame.
+
+### TL/DR:
+
+See the machine generated results this project generates: [results.md](results.md)
 
 ## Introduction
 
@@ -37,19 +43,10 @@ Floating-point numbers can accumulate errors in long computations due to roundin
 
 There is a fallacy in the logic promoted popularly. As a point in case, CMTime as used in QuickTime uses rational integers. However, experimentation demonstrates that CMTime, and in fact all robust rational integer implementations must renormalize, particularly in the case of time warps. Mixing two NTSC rates gives as a LCD of 1001 * 1001, and that can compound exponentially with every operation involving mixed rates. A robust implementation like CMTime must invoke a renormalization whenever a maximum bit count is exceeded and thus becomes lossy. This error emerges discretely when bit width capacities are exceeded.
 
-The need for renormalization and its associated lossy behavior is an underappreciated drawback of rational representations, and "rational is perfect" lore may not hold up to scrutiny.
+Quilez in Reference 2, in section "Detour - on coprime numbers" illustrates a fundamental inefficiency of rational integer representations, which is that the number of uniquely representable numbers in a rational pair is surprisingly small. A moment's reflection tells us that every pair whose numerator and denominator are equal are equivalent to one; since those numbers all reduce to one, we immediately discover redundancy in the representation. As explained in that paper, 61% of the representable values are unique. Contrast that to a floating point value, where each value is unique.
 
-Using logarithms we can quickly demonstrate how prevalent the renormalization problem is. Using a denominator of 1001 to stand in for NTSC rates, we can immediately observe that by design values, cannot be renormalized due to a lack of common factors. 
+The low efficiency of the representation and the need for renormalization and its associated lossy behavior is an underappreciated drawback of rational representations, and "rational is perfect" lore seems not to hold up to scrutiny.
 
-30000/1001 * 24000/1001 = 720,000,000 / 1,002,001
-
-The Greatest Common Divisor of 720,000,000 and 1,002,001 is 1, the fraction is in its simplest form. We already need 30 bits for the numerator and 20 for the denominator. Using base 2 logarithms, we can quickly show that overflow occurs almost immediately for NTSC rates.
-
-log2(bits) = log2(numerator) + k * log2(denominator)
-
-overflow occurs when log2(bits) > integer bits. For 32 bits, k is roughly 2.2, so overflow and therefore renormalization occurs after two multiplications.
-
-Doubling the number of bits only increases the overflow threshold by a signle step or so, so big integers are not a panacea. This demonstrates a severe limitation of integer rationals in a mixed frame rate environment, to the degree that the vaunted exactness of integer rationals cannot be demonstrated in use cases that matter to us.
 
 ## Overview of Method
 
@@ -103,11 +100,8 @@ See: [results.md](results.md)
 
 ## Todo List
 
-* [ ] Integrate c rational time
-    * [ ] write rational test
 * [ ] Specification for the double and its constraints if that is where we land
   (where it should be renormalized, etc)
-* [ ] talk about the sparsity of number representation of integer rationals vs floats
 * [ ] Copy the numeric limits section of the spreadsheets into a markdown table
   into this readme
 * [ ] Sin and Cos tests
