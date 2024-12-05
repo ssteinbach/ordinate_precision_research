@@ -14,9 +14,11 @@
 
 const std = @import("std");
 
-const rational_time = @cImport({
-    @cInclude("rational_time.c");
-});
+const rational_time = @cImport(
+    {
+        @cInclude("rational_time.c");
+    }
+);
 
 const TABLE_HEADER_RAT_SUM_PROD = (
     \\ 
