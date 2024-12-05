@@ -302,8 +302,8 @@ test "Floating point division to integer test"
 
 const TABLE_HEADER_SIN_DRIFT_TEST = (
     \\ 
-    \\ | target epsilon | iterations | s | iter/s |
-    \\ |----------------|------------|---|--------|
+    \\ | rate | target epsilon | iterations | s | iter/s |
+    \\ |------|----------------|------------|---|--------|
 );
 
 test "sin big number drift test" 
@@ -345,7 +345,6 @@ test "sin big number drift test"
             var test_value = initial_value;
             var i: usize = 0;
 
-            // half a frame at 192khz
             const TARGET_EPSILON: T = (1.0 / rate) / 2.0;
 
             var t_start = try std.time.Timer.start();
