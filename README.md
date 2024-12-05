@@ -113,6 +113,7 @@ See: [results.md](results.md)
 ## Appendix: Data limits of number types
 
 | Type | Bits of Integer Precision | Maximum Integer Value | Max Integer Hours@192KHz | Max Integer Years@192Hz |
+|------|---------------------------|-----------------------|--------------------------|-------------------------|
 | int32_t | 31 | 2147483647 | 3.10689185 | 0.0003546680195 |
 | uint32_t | 32 | 4294967295 | 6.213783702 | 0.0007093360391 |
 | double | 53 | 9.0072E+15 | 13031248.92 | 1487.585493 |
