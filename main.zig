@@ -302,8 +302,8 @@ test "Floating point division to integer test"
 
 const TABLE_HEADER_SIN_DRIFT_TEST = (
     \\ 
-    \\ | type | target epsilon | iterations | s | iter/s |
-    \\ |------|----------------|------------|---|--------|
+    \\ | target epsilon | iterations | s | iter/s |
+    \\ |----------------|------------|---|--------|
 );
 
 test "sin big number drift test" 
@@ -312,54 +312,69 @@ test "sin big number drift test"
         "\n\n## Sin Drift Test\n\n" 
         ++ "Measures the number of iterations of adding two pi to pi/4 before" 
         ++ " the sin value drifts more than half a 192khz frame from the value" 
-        ++ "at zero.\n{s}\n",
-        .{TABLE_HEADER_SIN_DRIFT_TEST},
+        ++ "at zero.\n",
+        .{},
     );
 
     var buf: [1024]u8 = undefined;
 
-    // @TODO: structure like other tests, split by type and add more rates
-
     inline for (TYPES) 
         |T| 
     {
-        const rate: T = 192000;
-
-        //Initial value of pi/4
-        var current_value: T = std.math.pi / 4.0;
-        const initial_value = std.math.sin(current_value);
-        var test_value = initial_value;
-        var i: usize = 0;
-
-        // half a frame at 192khz
-        const TARGET_EPSILON: T = (1.0 / rate) / 2.0;
-
-        var t_start = try std.time.Timer.start();
-
-        while (@abs(test_value - initial_value) < TARGET_EPSILON) 
-            : (i += 1) 
-        {
-            test_value = std.math.sin(current_value);
-            current_value = current_value + 2 * std.math.pi;
-        }
-
-        const compute_time_s = (
-            @as(T, @floatFromInt(t_start.read())) 
-            / std.time.ns_per_s
-        );
-        const cycles_per_s = @as(T, @floatFromInt(i)) / compute_time_s;
-        const time_to_err_s = @as(T, @floatFromInt(i)) / rate;
-
         std.debug.print(
-            " | {s} | {d} | {d} | {s} | {e:0.2} | \n",
-            .{
-                @typeName(T),
-                TARGET_EPSILON,
-                i,
-                try time_string(&buf, time_to_err_s),
-                cycles_per_s,
-            }
+            "\n### Type: {s}\n{s}\n",
+            .{ @typeName(T), TABLE_HEADER_SIN_DRIFT_TEST },
         );
+
+        for (
+            &[_]T{
+                24.0,
+                24.0 * 1000.0 / 1001.0,
+                25.0,
+                30.0 * 1000.0 / 1001.0,
+                120,
+                44100,
+                48000,
+                192000,
+            },
+        ) |rate| 
+        {
+            //Initial value of pi/4
+            var current_value: T = std.math.pi / 4.0;
+            const initial_value = std.math.sin(current_value);
+            var test_value = initial_value;
+            var i: usize = 0;
+
+            // half a frame at 192khz
+            const TARGET_EPSILON: T = (1.0 / rate) / 2.0;
+
+            var t_start = try std.time.Timer.start();
+
+            while (@abs(test_value - initial_value) < TARGET_EPSILON) 
+                : (i += 1) 
+            {
+                test_value = std.math.sin(current_value);
+                current_value = current_value + 2 * std.math.pi;
+            }
+
+            const compute_time_s = (
+                @as(T, @floatFromInt(t_start.read())) 
+                / std.time.ns_per_s
+            );
+            const cycles_per_s = @as(T, @floatFromInt(i)) / compute_time_s;
+            const time_to_err_s = @as(T, @floatFromInt(i)) / rate;
+
+            std.debug.print(
+                " | {d} | {d} | {d} | {s} | {e:0.2} | \n",
+                .{
+                    rate,
+                    TARGET_EPSILON,
+                    i,
+                    try time_string(&buf, time_to_err_s),
+                    cycles_per_s,
+                },
+            );
+        }
     }
 
     std.debug.print("\n", .{});
