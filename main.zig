@@ -20,6 +20,14 @@ const rational_time = @cImport(
     }
 );
 
+/// Types to test.  f128 is inconsistently supported outside of zig.  Some
+/// preliminary testing finds it to be ~100x slower than f64.
+const TYPES = &.{
+    f32,
+    f64,
+    // f128,
+};
+
 const TABLE_HEADER_RAT_SUM_PROD = (
     \\ 
     \\ | Increment | Iterations | s | iter/s |
@@ -102,12 +110,6 @@ const TABLE_HEADER_FP_SUM_PRODUCT = (
     \\ | rate | iterations | tolerance | wall clock time | iterations/s |
     \\ |------|------------|-----------|-----------------|--------------|
 );
-
-const TYPES = &.{
-    f32,
-    f64,
-    // f128,
-};
 
 test "Floating point product vs Sum Test" 
 {
@@ -312,8 +314,8 @@ test "sin big number drift test"
     std.debug.print(
         "\n\n## Sin Drift Test\n\n" 
         ++ "Measures the number of iterations of adding two pi to pi/4 before" 
-        ++ " the sin value drifts more than half a 192khz frame from the value" 
-        ++ "at zero.\n",
+        ++ " the sin value drifts more than half a frame from the value at"
+        ++ " zero.\n",
         .{},
     );
 
