@@ -29,6 +29,11 @@ const TABLE_HEADER_RAT_SUM_PROD = (
 test "rational time test" 
 {
     std.debug.print(
+        "\n\n# Ordinate Precision Exploration\n",
+        .{},
+    );
+
+    std.debug.print(
         "\n\n## Integer Rational Test\n\nReports how many iterations "
         ++ "before the sum of rational integers of vary rates is not equal to"
         ++ " the product for NTSC rates.\n{s}\n",
@@ -107,13 +112,9 @@ const TYPES = &.{
 test "Floating point product vs Sum Test" 
 {
     std.debug.print(
-        "\n\n# Ordinate Precision Exploration\n",
-        .{},
-    );
-
-    std.debug.print(
-        "\n\n## Float Type Exploration\nReports how many iterations before "
-        ++ "the sum is not equal to the product by more than half a frame\n",
+        "\n\n## Sum/Product equality tests\nReports how many iterations "
+        ++ "before the sum is not equal to the product by more than half a"
+        ++ " frame\n",
         .{},
     );
 
