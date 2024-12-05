@@ -107,9 +107,17 @@ See: [results.md](results.md)
 
 * [ ] Specification for the double and its constraints if that is where we land
   (where it should be renormalized, etc)
-* [ ] Copy the numeric limits section of the spreadsheets into a markdown table
-  into this readme
 * [ ] Sin and Cos tests
+
+
+## Appendix: Data limits of number types
+
+| Type | Bits of Integer Precision | Maximum Integer Value | Max Integer Hours@192KHz | Max Integer Years@192Hz |
+| int32_t | 31 | 2147483647 | 3.10689185 | 0.0003546680195 |
+| uint32_t | 32 | 4294967295 | 6.213783702 | 0.0007093360391 |
+| double | 53 | 9.0072E+15 | 13031248.92 | 1487.585493 |
+| int64_t | 63 | 9.22337E+18 | 13343998896 | 1523287.545 |
+| uint64_t | 64 | 1.84467E+19 | 26687997792 | 3046575.09 |
 
 
 ## References
