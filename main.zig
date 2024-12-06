@@ -158,12 +158,15 @@ test "Floating point product vs Sum Test"
                 var current: T = 0;
                 var iter: T = 0;
 
-                while (std.math.approxEqAbs(
-                    T,
-                    iter * increment,
-                    current,
-                    tolerance,
-                )) {
+                while (
+                    std.math.approxEqAbs(
+                        T,
+                        iter * increment,
+                        current,
+                        tolerance,
+                    )
+                ) 
+                {
                     iter += 1;
                     current += increment;
                 }
@@ -254,10 +257,11 @@ test "Floating point division to integer test"
 
             while (true) 
             {
-                const div = input_t / rate;
-                const fract = div - @trunc(div);
+                const div : T = input_t / rate;
+                const fract : T = div - @trunc(div);
 
-                if (fract > 0) {
+                if (fract > 0) 
+                {
                     msg = "Fract is not 0";
                     expected_t = 0;
                     break;
@@ -265,7 +269,8 @@ test "Floating point division to integer test"
 
                 measured = @intFromFloat(div);
 
-                if (expected_t != measured) {
+                if (expected_t != measured) 
+                {
                     msg = "frame is wrong";
                     break;
                 }
@@ -380,4 +385,44 @@ test "sin big number drift test"
     }
 
     std.debug.print("\n", .{});
+}
+
+test "NTSC 24 vs 44100 phase offset track" 
+{
+    // idea is to walk along an NTSC number line and compare the number of
+    // samples of 44100 computed
+
+    inline for (TYPES) 
+        |T| 
+    {
+        std.debug.print(
+            "\n### Type: {s}\n{s}\n",
+            .{ @typeName(T), TABLE_HEADER_SIN_DRIFT_TEST },
+        );
+
+        const rate_a_s : T = 24 * 1000/1001;
+        const rate_b_s : T = 44100;
+        var current_a : T = 0;
+        var current_b : T = 0;
+
+        var i = 0;
+
+        // @TODO: capture the max error
+        // @TODO: find all points in which the phase lines up
+
+        while (current_a == current_b) 
+        {
+            var next_multiple = lcm(rate_a, rate_b);
+
+            while (current_a <  next_multiple) {
+                current_a += rate_a_s;
+            }
+
+            while (current_b <  next_multiple) {
+                current_b += rate_b_s;
+            }
+
+            i += 1;
+        }
+    }
 }

@@ -107,6 +107,8 @@ See: [results.md](results.md)
 
 * [ ] Specification for the double and its constraints if that is where we land
   (where it should be renormalized, etc)
+* [ ] worth noting the difference between f32->f64->f128 and integer rational
+  i32->i64 etc.
 
 
 ## Appendix: Data limits of number types
