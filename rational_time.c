@@ -199,14 +199,17 @@ Rational32 rational32_force_den(Rational32 r, uint32_t den)
 Rational32 rational32_add(Rational32 lh, Rational32 rh)
 {
     int32_t lhsign = lh.num < 0 ? -1 : 1;
-    uint32_t lhn = lhsign ? -lh.num : lh.num;
+    uint64_t n0 = lhsign < 0 ? -lh.num : lh.num;
     int32_t rhsign = rh.num < 0 ? -1 : 1;
-    uint32_t rhn = rhsign ? -rh.num : rh.num;
-    uint32_t g = gcd32(lh.den, rh.den);
-    uint32_t den = lh.den / g;
-    uint64_t num = lhn * (rh.den / g) + rhn * den;
-    uint64_t g2 = gcd64(num, g);
-    return rational64_normalize_to_32( num / g2, den * rh.den / g2 );
+    uint64_t n1 = rhsign < 0 ? -rh.num : rh.num;
+
+    const uint64_t d0 = lh.den;
+    const uint64_t d1 = rh.den;
+    
+    const int64_t num = lhsign * rhsign * (n0 * d1 + d0 * n1);
+    const uint64_t den = d0 * d1;
+
+    return rational64_normalize_to_32(num, den);
 }
 
 Rational32 rational32_negate(Rational32 r)

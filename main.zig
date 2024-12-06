@@ -30,11 +30,11 @@ const TYPES = &.{
 
 const TABLE_HEADER_RAT_SUM_PROD = (
     \\ 
-    \\ | Increment | Iterations | s | iter/s |
-    \\ |-----------|------------|---|--------|
+    \\ | Increment | Iterations | s | sum | product | iter/s |
+    \\ |-----------|------------|---|-----|---------|--------|
 );
 
-test "rational time test" 
+test "rational time test sum/product" 
 {
     std.debug.print(
         "\n\n# Ordinate Precision Exploration\n",
@@ -42,9 +42,9 @@ test "rational time test"
     );
 
     std.debug.print(
-        "\n\n## Integer Rational Test\n\nReports how many iterations "
-        ++ "before the sum of rational integers of vary rates is not equal to"
-        ++ " the product for NTSC rates.\n{s}\n",
+        "\n\n## Integer Rational Sum/Product Test\n\nReports how many "
+        ++ "iterations before the sum of rational integers is not equal to "
+        ++ "the product for NTSC rates.\n{s}\n",
         .{TABLE_HEADER_RAT_SUM_PROD},
     );
 
@@ -64,17 +64,21 @@ test "rational time test"
         );
 
         // loop variables
-        var i = rational_time.rational32_create(0, 1);
         var mul = current;
         var is_equal = true;
+
+        var i : usize = 0;
 
         var t_start = try std.time.Timer.start();
         while (is_equal) 
         {
             current = rational_time.rational32_add(current, time_increment);
-            i.num += 1;
 
-            mul = rational_time.rational32_mul(time_increment, i);
+            i += 1;
+            mul = rational_time.rational32_mul(
+                time_increment,
+                rational_time.rational32_create(@intCast(i), 1),
+            );
 
             is_equal = rational_time.rational32_equal(current, mul);
         }
@@ -82,7 +86,7 @@ test "rational time test"
         const compute_time_s = (
             @as(f64, @floatFromInt(t_start.read())) / std.time.ns_per_s
         );
-        const cycles_per_s = @as(f64, @floatFromInt(i.num)) / compute_time_s;
+        const cycles_per_s = @as(f64, @floatFromInt(i)) / compute_time_s;
 
         const summed_time = (
             @as(f64, @floatFromInt(current.num)) 
@@ -92,11 +96,13 @@ test "rational time test"
         const time_str = try time_string(&buf, summed_time);
 
         std.debug.print(
-            " | {d}/{d} | {d} | {s} | {e:.2} |\n",
+            " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
             .{
                 time_increment.num, time_increment.den,
-                i.num,
+                i,
                 time_str,
+                current.num, current.den,
+                mul.num, mul.den,
                 cycles_per_s,
             },
         );
