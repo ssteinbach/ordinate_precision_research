@@ -43,6 +43,8 @@ Floating-point numbers can accumulate errors in long computations due to roundin
 
 There is a fallacy in the logic promoted popularly. As a point in case, CMTime as used in QuickTime uses rational integers. However, experimentation demonstrates that CMTime, and in fact all robust rational integer implementations must renormalize, particularly in the case of time warps. Mixing two NTSC rates gives as a LCD of 1001 * 1001, and that can compound exponentially with every operation involving mixed rates. A robust implementation like CMTime must invoke a renormalization whenever a maximum bit count is exceeded and thus becomes lossy. This error emerges discretely when bit width capacities are exceeded.
 
+This test is demonstrable by the "Integer Rational Sum/Product test" in our results, which shows that after 2145342 (when the multiply rolls over) we lose a bit of precision and the two numbers are now off by one.
+
 Quilez in Reference 2, in section "Detour - on coprime numbers" illustrates a fundamental inefficiency of rational integer representations, which is that the number of uniquely representable numbers in a rational pair is surprisingly small. A moment's reflection tells us that every pair whose numerator and denominator are equal are equivalent to one; since those numbers all reduce to one, we immediately discover redundancy in the representation. As explained in that paper, 61% of the representable values are unique. Contrast that to a floating point value, where each value is unique.
 
 The low efficiency of the representation and the need for renormalization and its associated lossy behavior is an underappreciated drawback of rational representations, and "rational is perfect" lore seems not to hold up to scrutiny.
