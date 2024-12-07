@@ -1,10 +1,15 @@
+//! Unit tests for the small rational_time.c library included in this project.
+
 const std = @import("std");
 
-const rational_time = @cImport({
-    @cInclude("rational_time.c");
-});
+const rational_time = @cImport(
+    {
+        @cInclude("rational_time.c");
+    }
+);
 
-test "rational tests" {
+test "rational_time:gcd" 
+{
     // gcd
     try std.testing.expectEqual(rational_time.gcd32(120, 16), 8);
     try std.testing.expectEqual(rational_time.gcd32(38400, 12000), 2400);
@@ -12,17 +17,26 @@ test "rational tests" {
     try std.testing.expectEqual(rational_time.gcd32(8, 2), 2);
     try std.testing.expectEqual(rational_time.gcd32(22000, 33000), 11000);
     try std.testing.expectEqual(rational_time.gcd32(12800, 1600), 1600);
+}
 
+test "rational_time:lcm32u"
+{
     // lcm32u
     try std.testing.expectEqual(rational_time.lcm32u(8, 2), 8);
     try std.testing.expectEqual(rational_time.lcm32u(11, 7), 77);
     try std.testing.expectEqual(rational_time.lcm32u(24, 16), 48);
+}
 
+test "rational_time:lc32"
+{
     // lcm32
     try std.testing.expectEqual(rational_time.lcm32(8, 2), 8);
     try std.testing.expectEqual(rational_time.lcm32(11, 7), 77);
     try std.testing.expectEqual(rational_time.lcm32(24, 16), 48);
+}
 
+test "rational_time:rational32_create"
+{
     // Rational32 creation
     const a = rational_time.rational32_create(32, 4);
     const b = rational_time.rational32_create(-1, 99);
@@ -81,25 +95,61 @@ test "rational tests" {
     const l = rational_time.rational32_create(8 * 1600, 1);
     try std.testing.expect(rational_time.rational32_equal(k, l));
     // div
-    const m = rational_time.rational32_normalize(rational_time.rational32_div(l, f));
+    const m = rational_time.rational32_normalize(
+        rational_time.rational32_div(l, f)
+    );
     try std.testing.expect(rational_time.rational32_equal(a, m));
-    // time intervals
-    const t1 = rational_time.TimeInterval32{ .start = rational_time.rational32_create(0, 1), .end = rational_time.rational32_create(1, 1), .rate = rational_time.rational32_create(1, 24) };
-    const dur1 = rational_time.rational32_create(1, 1);
-    try std.testing.expect(rational_time.rational32_equal(rational_time.tinterval32_duration(t1), dur1));
-    const t2 = rational_time.TimeInterval32{ .start = rational_time.rational32_create(0, 1), .end = rational_time.rational32_create(101, 100), .rate = rational_time.rational32_create(1, 24) };
-    const t3 = rational_time.tinterval32_rate_conform(t2);
-    try std.testing.expect(rational_time.rational32_equal(rational_time.tinterval32_duration(t3), dur1));
-    try std.testing.expect(rational_time.tinterval32_rate_frames(t2) == 24);
+}
 
+test "rational_time: TimeInterval"
+{
+    // time intervals
+    const t1 = rational_time.TimeInterval32{
+        .start = rational_time.rational32_create(0, 1),
+        .end = rational_time.rational32_create(1, 1),
+        .rate = rational_time.rational32_create(1, 24),
+    };
+
+    const dur1 = rational_time.rational32_create(1, 1);
+    try std.testing.expect(
+        rational_time.rational32_equal(
+            rational_time.tinterval32_duration(t1),
+            dur1
+        )
+    );
+
+    const t2 = rational_time.TimeInterval32{
+        .start = rational_time.rational32_create(0, 1),
+        .end = rational_time.rational32_create(101, 100),
+        .rate = rational_time.rational32_create(1, 24),
+    };
+    const t3 = rational_time.tinterval32_rate_conform(t2);
+    try std.testing.expect(
+        rational_time.rational32_equal(
+            rational_time.tinterval32_duration(t3),
+            dur1
+        )
+    );
+    try std.testing.expectEqual(
+        rational_time.tinterval32_rate_frames(t2),
+        24
+    );
+}
+
+test "rational_time: joint intervals"
+{
     // joint period
     const ntsc30 = rational_time.rational64_create(24000, 1001);
     const audio44100 = rational_time.rational64_create(1, 44100);
     const expected = rational_time.rational64_create(146763520, 6306300);
     const computed = rational_time.rational64_joint_period(ntsc30, audio44100);
-    std.debug.print("expected: {}, computed: {}\n", .{ expected, computed });
-    /// @TODO, the expected and compute values match exactly as doubles, but the
-    /// rational64_equal function reports inequality. needs investigation.
-    /// The routine is usuable as is though.
+    std.debug.print(
+        "expected: {}, computed: {}\n",
+        .{ expected, computed }
+    );
+
+    // @TODO, the expected and compute values match exactly as doubles, but the
+    // rational64_equal function reports inequality. needs investigation.
+    // The routine is usuable as is though.
     //try std.testing.expect(rational_time.rational64_equal(expected, computed));
 }
