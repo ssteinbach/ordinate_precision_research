@@ -393,42 +393,161 @@ test "sin big number drift test"
     std.debug.print("\n", .{});
 }
 
+fn least_common_multiple(
+    comptime T: type,
+    a: T,
+    b: T,
+) T
+{
+    const a_i : u32 = @intFromFloat(a);
+    const b_i : u32 = @intFromFloat(b);
+
+    return (
+        @abs(a * b) 
+        / @as(T, @floatFromInt(std.math.gcd(a_i, b_i)))
+    );
+}
+
+fn next_greater_multiple(
+    comptime T: type,
+    current: T,
+    a: T,
+    b: T
+) T
+{
+    const lcm = least_common_multiple(T, a, b);
+
+    if (@mod(current, lcm) == 0) {
+        return current + lcm;
+    }
+    std.debug.print(
+        "mod: {d} current: {d} lcm2: {d}\n",
+        .{ @mod(current, lcm), current, lcm }
+    );
+    return (@ceil(current / lcm)) * lcm;
+}
+
+const TABLE_HEADER_PHASE_OFFSET = (
+    \\ 
+    \\ | rate_a | rate_b | iterations | next multiple | current_a | current_b | delta |
+    \\ |--------|--------|------------|---------------|-----------|-----------|-------|
+);
+
+
 test "NTSC 24 vs 44100 phase offset track" 
 {
     // idea is to walk along an NTSC number line and compare the number of
     // samples of 44100 computed
+
+    std.debug.print(
+        "\n\n## NTSC 24 vs 44100 Phase Offset\n\n" 
+        ++ "Measures the number of iterations of finding the next common "
+        ++ "multiple of NTSC 24 and 44100 such that the sum of each of the "
+        ++ "rates does not equal.\n",
+        .{},
+    );
 
     inline for (TYPES) 
         |T| 
     {
         std.debug.print(
             "\n### Type: {s}\n{s}\n",
-            .{ @typeName(T), TABLE_HEADER_SIN_DRIFT_TEST },
+            .{ @typeName(T), TABLE_HEADER_PHASE_OFFSET },
         );
 
-        const rate_a_s : T = 24 * 1000/1001;
-        const rate_b_s : T = 44100;
-        var current_a : T = 0;
-        var current_b : T = 0;
+        var buf : [1024]u8 = undefined;
 
-        var i = 0;
-
-        // @TODO: capture the max error
-        // @TODO: find all points in which the phase lines up
-
-        while (current_a == current_b) 
+        for (
+            &[_]T{
+                // 24.0,
+                // 24.0 * 1000.0 / 1001.0,
+                25.0,
+                // 30.0 * 1000.0 / 1001.0,
+                // 120,
+                // 44100,
+                // 48000,
+                // 192000,
+            },
+        ) |rate_a| 
         {
-            var next_multiple = lcm(rate_a, rate_b);
+            for (
+                &[_]T{
+                    // 24.0,
+                    // 24.0 * 1000.0 / 1001.0,
+                    // 25.0,
+                    30.0 * 1000.0 / 1001.0,
+                    // 120,
+                    // 44100,
+                    // 48000,
+                    // 192000,
+                },
+            ) |rate_b| 
+            {
+                if (rate_a == rate_b) {
+                    continue;
+                }
 
-            while (current_a <  next_multiple) {
-                current_a += rate_a_s;
+                const inc_a_s : T = 1 / rate_a;
+                const EPS_A = inc_a_s / 2;
+
+                const inc_b_s : T = 1 / rate_b;
+                const EPS_B = inc_b_s / 2;
+
+                const TARGET_EPSILON = @max(EPS_A, EPS_B);
+
+                // std.debug.print("inc_a: {d} inc_b: {d}\n", .{ inc_a_s, inc_b_s });
+
+                if (inc_a_s == 0 or inc_b_s == 0) {
+                    continue;
+                }
+
+                var current_a : T = 0;
+                var current_b : T = 0;
+                var next_multiple : T = 0;
+
+                var i:usize = 0;
+
+                // @TODO: find all points in which the phase lines up
+
+                while (
+                    @abs(current_a - current_b) < TARGET_EPSILON 
+                    and next_multiple < 60 * 60 * 24 * 1
+                ) 
+                {
+                    next_multiple = next_greater_multiple(
+                        T,
+                        next_multiple,
+                        rate_a,
+                        rate_b,
+                    );
+
+                    std.debug.print(
+                        "next_multiple: {d} current a : {d} b: {d}\n",
+                        .{ next_multiple, current_a, current_b, }
+                    );
+
+                    while (@abs(next_multiple - current_a) > EPS_A) {
+                        current_a += inc_a_s;
+                    }
+
+                    while (@abs(next_multiple - current_b) > EPS_B) {
+                        current_b += inc_b_s;
+                    }
+
+                    i += 1;
+                }
+
+                std.debug.print(
+                    "| {d} | {d} | {d} | {d} | {s} | {d} | {d} | {d} |\n",
+                    .{ 
+                        rate_a, rate_b,
+                        i, 
+                        next_multiple,
+                        try time_string(&buf, next_multiple),
+                        current_a, current_b, current_a - current_b 
+                    },
+                );
             }
-
-            while (current_b <  next_multiple) {
-                current_b += rate_b_s;
-            }
-
-            i += 1;
         }
     }
 }
