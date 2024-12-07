@@ -18,6 +18,19 @@ typedef struct {
 } Rational32;
 
 /*
+ * Rational64
+ *
+ * a 64 bit signed rational number
+ *
+ * A denominator of zero indicates infinity
+ */
+typedef struct {
+    int64_t num;
+    uint64_t den;
+} Rational64;
+
+
+/*
  * TimeInterval32
  *
  * a rate of infinity indicates that the interval is continuous
@@ -103,8 +116,27 @@ int32_t lcm32(int32_t u_, int32_t v_)
     uint64_t uu = (u < 0) ? -u : u;
     uint64_t vu = v;
     uint64_t div = (uu * vu) / gcd32(uu, vu);
+    // note potential of overflow
     return sgn * (int32_t) div;
 }
+
+int32_t lcm64(int64_t u_, int64_t v_) 
+{
+    int64_t u = u_;
+    int64_t v = v_;
+    if (v < 0) {
+        u = -u;
+        v = -v;
+    }
+    int64_t sgn = (u < 0) ? -1 : 1;
+    uint64_t uu = (u < 0) ? -u : u;
+    uint64_t vu = v;
+    // note potential of overflow
+    uint64_t div = (uu * vu) / gcd64(uu, vu);
+    // note potential of overflow
+    return sgn * (int64_t) div;
+}
+
 
 uint32_t lcm32u(uint32_t u, uint32_t v) 
 {
@@ -139,6 +171,24 @@ Rational32 rational32_create(int32_t n_, int32_t d_)
     uint32_t div = gcd32(nu, du);
     return (Rational32) { 
         sign * (int32_t) (nu / div), du / div };
+}
+
+Rational64 rational64_create(int64_t n_, int64_t d_)
+{
+    if (d_ == 0 || n_ == 0)
+        return (Rational64) { n_, d_ };
+    int64_t n = n_;
+    int64_t d = d_;
+    if (d_ < 0) {
+        n = -n;
+        d = -d;
+    }
+    int64_t sign = (n < 0) ? -1 : 1;
+    uint64_t nu = (n < 0) ? -n : n;
+    uint64_t du = d;
+    uint64_t div = gcd64(nu, du);
+    return (Rational64) { 
+        sign * (int64_t) (nu / div), du / div };
 }
 
 bool rational32_is_inf(Rational32 r)
@@ -248,6 +298,13 @@ bool rational32_equal(Rational32 lh, Rational32 rh)
 {
     Rational32 a = rational32_normalize(lh);
     Rational32 b = rational32_normalize(rh);
+    return a.num == b.num && a.den == b.den;
+}
+
+bool rational64_equal(Rational64 lh, Rational64 rh)
+{
+    Rational64 a = { lh.num, lh.den };
+    Rational64 b = { rh.num, rh.den };
     return a.num == b.num && a.den == b.den;
 }
 
@@ -502,6 +559,63 @@ int32_t tinterval32_rate_frames(TimeInterval32 a)
     Rational32 dur =  tinterval32_duration(a);
     Rational32 frames =  rational32_div(dur, a.rate);
     return rational32_floor(frames);
+}
+
+// Function to compute the joint period
+Rational32 rational32_joint_period(Rational32 r1, Rational32 r2) {
+    /*
+     * Explanation:
+     * This function computes the **joint period** of two rational rates.
+     * The joint period is the smallest duration where both rates align,
+     * represented as a rational number.
+     */
+
+    // Step 1: Compute the Least Common Multiple (LCM) of the denominators.
+    // The LCM gives the smallest shared denominator between the two rates.
+    uint32_t common_den = lcm32(r1.den, r2.den);
+
+    // Step 2: Scale the numerators to the common denominator space.
+    // Cross-multiply each numerator by the other rate's denominator.
+    int64_t scaled_num1 = (int64_t)r1.num * (common_den / r1.den);
+    int64_t scaled_num2 = (int64_t)r2.num * (common_den / r2.den);
+
+    // Step 3: Compute the LCM of the scaled numerators.
+    // This determines the alignment of cycles in terms of the common denominator.
+    int64_t joint_num = lcm32(scaled_num1, scaled_num2);
+
+    // Step 4: Construct the resulting joint period as a rational number.
+    // The numerator is the LCM of the numerators,
+    // and the denominator is the shared denominator.
+    Rational32 result = rational64_normalize_to_32(joint_num, common_den);
+    return result;
+}
+
+Rational64 rational64_joint_period(Rational64 r1, Rational64 r2) {
+    /*
+     * Explanation:
+     * This function computes the **joint period** of two rational rates.
+     * The joint period is the smallest duration where both rates align,
+     * represented as a rational number.
+     */
+
+    // Step 1: Compute the Least Common Multiple (LCM) of the denominators.
+    // The LCM gives the smallest shared denominator between the two rates.
+    uint64_t common_den = lcm64(r1.den, r2.den);
+
+    // Step 2: Scale the numerators to the common denominator space.
+    // Cross-multiply each numerator by the other rate's denominator.
+    int64_t scaled_num1 = (int64_t)r1.num * (common_den / r1.den);
+    int64_t scaled_num2 = (int64_t)r2.num * (common_den / r2.den);
+
+    // Step 3: Compute the LCM of the scaled numerators.
+    // This determines the alignment of cycles in terms of the common denominator.
+    int64_t joint_num = lcm64(scaled_num1, scaled_num2);
+
+    // Step 4: Construct the resulting joint period as a rational number.
+    // The numerator is the LCM of the numerators,
+    // and the denominator is the shared denominator.
+    Rational64 result = { joint_num, common_den };
+    return result;
 }
 
 #ifdef HAVE_MUNIT
