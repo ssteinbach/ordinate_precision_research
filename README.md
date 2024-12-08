@@ -31,10 +31,10 @@ Rational numbers ensure that every frame aligns perfectly with its time represen
 
 ### Historical Standards
 
-Society of Motion Picture and Television Engineers [SMPTE timecodes](https://en.wikipedia.org/wiki/SMPTE_timecode) use fixed frame rates with a denominator (like 1001 for drop-frame formats), aligning naturally with rational arithmetic.
-Common non-integer rates stem from [NTSC](https://en.wikipedia.org/wiki/NTSC) and [ATSC](https://en.wikipedia.org/wiki/ATSC_standards) video standards. Rational systems predate the widespread use of IEEE floating-point formats and were likely chosen for simplicity and exactness in early implementations.
+Society of Motion Picture and Television Engineers SMPTE timecodes[^3] use fixed frame rates with a denominator (like 1001 for drop-frame formats), aligning naturally with rational arithmetic.
+Common non-integer rates stem from NTSC[^4] and ATSC[^5] video standards. Rational systems predate the widespread use of IEEE floating-point formats and were likely chosen for simplicity and exactness in early implementations.
 
-Notably, [SMPTE ST12-1 2014](https://pub.smpte.org/pub/st12-1/st0012-1-2014.pdf) states that:
+Notably, SMPTE ST12-1 2014[^6] states that:
 > The results of dividing the integer frame rates by 1.001 do not result in precise decimal numbers, for example, 30/1.001 is 29.970029970029... (to 12 decimals). This is commonly abbreviated as 29.97. In a similar manner, it is common to abbreviate 24/1.001 as 23.98, 48/1.001 as 47.95, and 60/1.001 as 59.94. These abbreviations are used throughout this document. Sufficient precision is necessary in calculations to assure that rounding or truncation operations will not create errors in the end result. This is particularly important when calculating audio sample alignments or when long-term time keeping is required.
 
 For rates defined as 30/1.001 or 24/1.001, system implementers typically use rational numbers 30000/1001 and 24000/1001 which are mathematically equivalent.
@@ -46,7 +46,7 @@ Floating-point numbers can accumulate errors in long computations due to roundin
 
 ### Rational Integer Pitfalls
 
-There is a fallacy in the logic promoted popularly. As a point in case, [CMTime](https://developer.apple.com/documentation/coremedia/cmtime-api) as used in QuickTime uses rational integers. However, experimentation demonstrates that CMTime, and in fact all robust rational integer implementations must renormalize, particularly in the case of time warps. Mixing two NTSC rates gives as a LCD of 1001 * 1001, and that can compound exponentially with every operation involving mixed rates. A robust implementation like CMTime must invoke a renormalization whenever a maximum bit count is exceeded and thus becomes lossy. This error emerges discretely when bit width capacities are exceeded.
+There is a fallacy in the logic promoted popularly. As a point in case, CMTime[^7] as used in QuickTime uses rational integers. However, experimentation demonstrates that CMTime, and in fact all robust rational integer implementations must renormalize, particularly in the case of time warps. Mixing two NTSC rates gives as a LCD of 1001 * 1001, and that can compound exponentially with every operation involving mixed rates. A robust implementation like CMTime must invoke a renormalization whenever a maximum bit count is exceeded and thus becomes lossy. This error emerges discretely when bit width capacities are exceeded.
 
 This test is demonstrable by the "Integer Rational Sum/Product test" in our results, which shows that after 2145342 (when the multiply rolls over) we lose a bit of precision and the two numbers are now off by one.
 
@@ -116,7 +116,7 @@ See: [results.md](results.md)
   (where it should be renormalized, etc)
 * [ ] worth noting the difference between f32->f64->f128 and integer rational
   i32->i64 etc.
-
+* [ ] Fold other references from [^1] into the document.
 
 ## Appendix: Data limits of number types
 
@@ -133,3 +133,8 @@ See: [results.md](results.md)
 
 [^1]: Original OpenTimelineIO research on Ordinate types in editorial formats: https://docs.google.com/spreadsheets/d/1JMwBMJuAUEzJFfPHUnI1AbFgIWuIdBkzVEUF80cx6l4/edit?usp=sharing
 [^2]: Inigo Quilez Experiments with Rational Number based rendering: https://iquilezles.org/articles/floatingbar/
+[^3]: SMPTE timecode: https://en.wikipedia.org/wiki/SMPTE_timecode
+[^4]: NTSC video standard: https://en.wikipedia.org/wiki/NTSC
+[^5]: ATSC video standard: https://en.wikipedia.org/wiki/ATSC_standards
+[^6]: SMPTE timecode specification: https://pub.smpte.org/pub/st12-1/st0012-1-2014.pdf
+[^7]: Apple CoreMedia CMTime: https://developer.apple.com/documentation/coremedia/cmtime-api
