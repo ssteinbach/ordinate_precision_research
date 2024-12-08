@@ -50,7 +50,7 @@ There is a fallacy in the logic promoted popularly. As a point in case, [CMTime]
 
 This test is demonstrable by the "Integer Rational Sum/Product test" in our results, which shows that after 2145342 (when the multiply rolls over) we lose a bit of precision and the two numbers are now off by one.
 
-Quilez in Reference 2, in section "Detour - on coprime numbers" illustrates a fundamental inefficiency of rational integer representations, which is that the number of uniquely representable numbers in a rational pair is surprisingly small. A moment's reflection tells us that every pair whose numerator and denominator are equal are equivalent to one; since those numbers all reduce to one, we immediately discover redundancy in the representation. As explained in that paper, 61% of the representable values are unique. Contrast that to a floating point value, where each value is unique.
+Quilez[^2], in section "Detour - on coprime numbers" illustrates a fundamental inefficiency of rational integer representations, which is that the number of uniquely representable numbers in a rational pair is surprisingly small. A moment's reflection tells us that every pair whose numerator and denominator are equal are equivalent to one; since those numbers all reduce to one, we immediately discover redundancy in the representation. As explained in that paper, 61% of the representable values are unique. Contrast that to a floating point value, where each value is unique.
 
 The low efficiency of the representation and the need for renormalization and its associated lossy behavior is an underappreciated drawback of rational representations, and "rational is perfect" lore seems not to hold up to scrutiny.
 
@@ -131,5 +131,5 @@ See: [results.md](results.md)
 
 ## References
 
-1. Original OpenTimelineIO research on Ordinate types in editorial formats: https://docs.google.com/spreadsheets/d/1JMwBMJuAUEzJFfPHUnI1AbFgIWuIdBkzVEUF80cx6l4/edit?usp=sharing
-2. Inigo Quilez Experiments with Rational Number based rendering: https://iquilezles.org/articles/floatingbar/
+[^1]: Original OpenTimelineIO research on Ordinate types in editorial formats: https://docs.google.com/spreadsheets/d/1JMwBMJuAUEzJFfPHUnI1AbFgIWuIdBkzVEUF80cx6l4/edit?usp=sharing
+[^2]: Inigo Quilez Experiments with Rational Number based rendering: https://iquilezles.org/articles/floatingbar/
