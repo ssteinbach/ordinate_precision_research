@@ -109,6 +109,30 @@ To run a specific test:
 
 See: [results.md](results.md)
 
+## Conclusions
+
+* We have a number of tests that explore the accuracy of a variety of number
+  representations present in audio/video engineering, including integer
+  rational, and various bit depths of floating point number.
+* If your system does not require time warps, than integers, or "factorized
+  integers"/integer rationals (if you're mixing rates) is probably sufficient.
+* Given a system that aims to allow warping and audio rates, however, a
+  floating point number may be a better choice.
+* Floating point numbers do not suffer the same accuracy penalties under
+  multiplication that integer rationals do
+* In the limit, integer rational implementations reinvent floating point
+  numbers without the benefit of hardware acceleration and deep software
+  support.
+* For a system that uses a floating-point based number, it is possible to
+  compute the accuracy limits imposed by the system and the number bit width.
+* For systems that are using integers, conversions to floating point numbers
+  are still subject to the limits of floating point accuracy.  IE if you need
+  to synchronize a point that is past the floating point accuracy limit, it
+  doesn't matter if you compute the input with integer accuracy if you still
+  need to use a floating point number without sufficient accuracy to convert
+  into the other space (IE fetching an audio sample during a long running video
+  timeline)
+
 ## Todo List
 
 
@@ -117,6 +141,7 @@ See: [results.md](results.md)
 * [ ] worth noting the difference between f32->f64->f128 and integer rational
   i32->i64 etc.
 * [ ] Fold other references from [^1] into the document.
+* [ ] add "factorized ints" limits to the integer precision table below
 
 ## Appendix: Data limits of number types
 
@@ -138,3 +163,5 @@ See: [results.md](results.md)
 [^5]: ATSC video standard: https://en.wikipedia.org/wiki/ATSC_standards
 [^6]: SMPTE timecode specification: https://pub.smpte.org/pub/st12-1/st0012-1-2014.pdf
 [^7]: Apple CoreMedia CMTime: https://developer.apple.com/documentation/coremedia/cmtime-api
+[^8]: Ticks: https://iquilezles.org/articles/ticks/
+[^9]: Flicks: https://github.com/facebookarchive/Flicks
