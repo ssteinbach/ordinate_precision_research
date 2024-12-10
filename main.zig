@@ -25,6 +25,8 @@ const rational_time = @cImport(
 const TYPES = &.{
     f32,
     f64,
+    // @TODO: add iteration limits to all the tests so that we can turn on the 
+    //        f128 case
     // f128,
 };
 
@@ -57,6 +59,85 @@ test "rational time test sum/product"
         }
     ) |time_increment| 
     {
+        // value to accumulate
+        var current = rational_time.rational32_create(
+            0,
+            @intCast(time_increment.den),
+        );
+
+        // loop variables
+        var mul = current;
+        var is_equal = true;
+
+        var i : usize = 0;
+
+        var t_start = try std.time.Timer.start();
+        while (is_equal) 
+        {
+            current = rational_time.rational32_add(current, time_increment);
+
+            i += 1;
+            mul = rational_time.rational32_mul(
+                time_increment,
+                rational_time.rational32_create(@intCast(i), 1),
+            );
+
+            is_equal = rational_time.rational32_equal(current, mul);
+        }
+
+        const compute_time_s = (
+            @as(f64, @floatFromInt(t_start.read())) / std.time.ns_per_s
+        );
+        const cycles_per_s = @as(f64, @floatFromInt(i)) / compute_time_s;
+
+        const summed_time = (
+            @as(f64, @floatFromInt(current.num)) 
+            / @as(f64, @floatFromInt(current.den))
+        );
+
+        const time_str = try time_string(&buf, summed_time);
+
+        std.debug.print(
+            " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
+            .{
+                time_increment.num, time_increment.den,
+                i,
+                time_str,
+                current.num, current.den,
+                mul.num, mul.den,
+                cycles_per_s,
+            },
+        );
+    }
+
+    std.debug.print("\n", .{});
+}
+
+test "rational time test sum/product w/ scale" 
+{
+    std.debug.print(
+        "\n\n## Integer Rational Sum/Product Test w/ 0.5 Scale\n\nReports"
+        ++ " how many iterations before the sum of rational integers is not "
+        ++ "equal to the product for NTSC rates.\n{s}\n",
+        .{TABLE_HEADER_RAT_SUM_PROD},
+    );
+
+    var buf: [1024]u8 = undefined;
+
+    for (
+        [_]rational_time.Rational32{
+            rational_time.rational32_create(1001, 24 * 1000),
+            rational_time.rational32_create(1001, 30 * 1000),
+        }
+    ) |time_increment_in| 
+    {
+        const SCALE = rational_time.rational32_create(2.0, 1.0,);
+
+        const time_increment = rational_time.rational32_div(
+            time_increment_in,
+            SCALE
+        );
+
         // value to accumulate
         var current = rational_time.rational32_create(
             0,
@@ -171,6 +252,89 @@ test "Floating point product vs Sum Test"
                         current,
                         tolerance,
                     )
+                    and iter < 100000000
+                ) 
+                {
+                    iter += 1;
+                    current += increment;
+                }
+
+                const compute_time_s = (
+                    @as(T, @floatFromInt(t_start.read())) / std.time.ns_per_s
+                );
+                const cycles_per_s = iter / compute_time_s;
+
+                const time_str = try time_string(
+                    &buf,
+                    current,
+                );
+
+                std.debug.print(
+                    " | {d} | {d} | {d} | {s} | {e:0.2} |\n",
+                    .{ rate, iter, tolerance, time_str, cycles_per_s },
+                );
+            }
+        }
+    }
+
+    std.debug.print("\n", .{});
+}
+
+test "Floating point product vs Sum Test w/ Scale" 
+{
+    std.debug.print(
+        "\n\n## Sum/Product equality tests\nReports how many iterations "
+        ++ "before the sum is not equal to the product by more than half a"
+        ++ " frame\n",
+        .{},
+    );
+
+    var buf: [1024]u8 = undefined;
+
+    inline for (TYPES) 
+        |T| 
+    {
+        std.debug.print(
+            "\n### Type: {s}\n{s}\n",
+            .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT },
+        );
+
+        for (
+            [_]T{
+                24.0,
+                24.0 * 1000.0 / 1001.0,
+                30.0 * 1000.0 / 1001.0,
+                120,
+                44100.0,
+                48000.0,
+                192000.0,
+            },
+        ) |rate| 
+        {
+            const increment: T = @floatCast(0.5 * (1.0 / rate));
+
+            for (
+                &[_]T{
+                    // half a frame
+                    1.0 / (rate * 2),
+                    // ms
+                    // 5e-4,
+                },
+            ) |tolerance| 
+            {
+                var t_start = try std.time.Timer.start();
+
+                var current: T = 0;
+                var iter: T = 0;
+
+                while (
+                    std.math.approxEqAbs(
+                        T,
+                        iter * increment,
+                        current,
+                        tolerance,
+                    )
+                    and iter < 100000000
                 ) 
                 {
                     iter += 1;
@@ -459,29 +623,29 @@ test "NTSC 24 vs 44100 phase offset track"
 
         for (
             &[_]T{
-                // 24.0,
-                // 24.0 * 1000.0 / 1001.0,
+                24.0,
+                24.0 * 1000.0 / 1001.0,
                 25.0,
-                // 30.0 * 1000.0 / 1001.0,
-                // 120,
+                30.0 * 1000.0 / 1001.0,
+                120,
                 // 44100,
                 // 48000,
                 // 192000,
             },
-        ) |rate_a| 
+            ) |rate_a| 
         {
             for (
                 &[_]T{
-                    // 24.0,
-                    // 24.0 * 1000.0 / 1001.0,
-                    // 25.0,
+                    24.0,
+                    24.0 * 1000.0 / 1001.0,
+                    25.0,
                     30.0 * 1000.0 / 1001.0,
-                    // 120,
+                    120,
                     // 44100,
                     // 48000,
                     // 192000,
                 },
-            ) |rate_b| 
+                ) |rate_b| 
             {
                 if (rate_a == rate_b) {
                     continue;
@@ -509,23 +673,20 @@ test "NTSC 24 vs 44100 phase offset track"
 
                 // @TODO: find all points in which the phase lines up
 
+                const lcm = least_common_multiple(T, rate_a, rate_b);
+
                 while (
                     @abs(current_a - current_b) < TARGET_EPSILON 
                     and next_multiple < 60 * 60 * 24 * 1
                 ) 
                 {
-                    next_multiple = next_greater_multiple(
-                        T,
-                        next_multiple,
-                        rate_a,
-                        rate_b,
-                    );
+                    next_multiple = @as(T, @floatFromInt(i))*lcm;
 
-                    std.debug.print(
-                        "next_multiple: {d} current a : {d} b: {d}\n",
-                        .{ next_multiple, current_a, current_b, }
-                    );
-
+                    // std.debug.print(
+                    //     "next_multiple: {d} current a : {d} b: {d}\n",
+                    //     .{ next_multiple, current_a, current_b, }
+                    // );
+                    //
                     while (@abs(next_multiple - current_a) > EPS_A) {
                         current_a += inc_a_s;
                     }
