@@ -54,6 +54,10 @@ Quilez[^2], in section "Detour - on coprime numbers" illustrates a fundamental i
 
 The low efficiency of the representation and the need for renormalization and its associated lossy behavior is an underappreciated drawback of rational representations, and "rational is perfect" lore seems not to hold up to scrutiny.
 
+## Further Notes - "Factorized Integers"
+
+Another less common approach in the community is to use what we refer to as a "factorized integer" - an integer that is an index over an implicit rate.  The rate is a large number that is a common factor of a common media rates.  See [^8] and [^9].  These are bounded by both by integer limits, especially for coarser rates and also cannot handle non-integer multiplication or rates whose factors are not present in their rate.  We've included them in the data limits table.
+
 
 ## Overview of Method
 
@@ -141,7 +145,6 @@ See: [results.md](results.md)
 * [ ] worth noting the difference between f32->f64->f128 and integer rational
   i32->i64 etc.
 * [ ] Fold other references from [^1] into the document.
-* [ ] add "factorized ints" limits to the integer precision table below
 
 ## Appendix: Data limits of number types
 
@@ -152,7 +155,6 @@ See: [results.md](results.md)
 | double | 53 | 9.0072E+15 | 13031248.92 | 1487.585493 |
 | int64_t | 63 | 9.22337E+18 | 13343998896 | 1523287.545 |
 | uint64_t | 64 | 1.84467E+19 | 26687997792 | 3046575.09 |
-
 
 ## References
 
