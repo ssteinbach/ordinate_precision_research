@@ -72,7 +72,10 @@ test "rational time test sum/product"
         var i : usize = 0;
 
         var t_start = try std.time.Timer.start();
-        while (is_equal) 
+        while (
+            is_equal
+            and i < ITER_MAX
+        ) 
         {
             current = rational_time.rational32_add(current, time_increment);
 
@@ -151,7 +154,7 @@ test "rational time test sum/product w/ scale"
         var i : usize = 0;
 
         var t_start = try std.time.Timer.start();
-        while (is_equal) 
+        while (is_equal and i < ITER_MAX) 
         {
             current = rational_time.rational32_add(current, time_increment);
 
