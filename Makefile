@@ -1,5 +1,5 @@
 all:
-	zig test -I. rational_tests.zig
+	zig test -I. -O ReleaseSafe rational_tests.zig
 	time zig test -O ReleaseSafe -I. main.zig
 
 update:

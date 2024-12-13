@@ -54,6 +54,10 @@ Quilez[^2], in section "Detour - on coprime numbers" illustrates a fundamental i
 
 The low efficiency of the representation and the need for renormalization and its associated lossy behavior is an underappreciated drawback of rational representations, and "rational is perfect" lore seems not to hold up to scrutiny.
 
+## Further Notes - "Factorized Integers"
+
+Another less common approach in the community is to use what we refer to as a "factorized integer" - an integer that is an index over an implicit rate.  The rate is a large number that is a common factor of a common media rates.  See [^8] and [^9].  These are bounded by both by integer limits, especially for coarser rates and also cannot handle non-integer multiplication or rates whose factors are not present in their rate.  We've included them in the data limits table.
+
 
 ## Overview of Method
 
@@ -109,6 +113,30 @@ To run a specific test:
 
 See: [results.md](results.md)
 
+## Conclusions
+
+* We have a number of tests that explore the accuracy of a variety of number
+  representations present in audio/video engineering, including integer
+  rational, and various bit depths of floating point number.
+* If your system does not require time warps, than integers, or "factorized
+  integers"/integer rationals (if you're not mixing rates) is probably sufficient.
+* Given a system that aims to allow warping,  and audio rates or NTSC rates however, a
+  floating point number may be a better choice.
+* Floating point numbers do not suffer the same accuracy penalties under
+  multiplication that integer rationals do.
+* In the limit, integer rational implementations reinvent floating point
+  numbers without the benefit of hardware acceleration and deep software
+  support.
+* For a system that uses a floating-point based number, it is possible to
+  compute the accuracy limits imposed by the system and the number bit width.
+* For systems that are using integers, conversions to floating point numbers
+  are still subject to the limits of floating point accuracy.  If you need
+  to synchronize a time value that is past the floating point accuracy limit, it
+  doesn't matter if you compute the input with integer accuracy if you still
+  need to use a floating point number without sufficient accuracy to convert
+  into the other space such as occurs when fetching an audio sample during a long running video
+  timeline.
+
 ## Todo List
 
 
@@ -128,7 +156,6 @@ See: [results.md](results.md)
 | int64_t | 63 | 9.22337E+18 | 13343998896 | 1523287.545 |
 | uint64_t | 64 | 1.84467E+19 | 26687997792 | 3046575.09 |
 
-
 ## References
 
 [^1]: Original OpenTimelineIO research on Ordinate types in editorial formats: https://docs.google.com/spreadsheets/d/1JMwBMJuAUEzJFfPHUnI1AbFgIWuIdBkzVEUF80cx6l4/edit?usp=sharing
@@ -138,3 +165,5 @@ See: [results.md](results.md)
 [^5]: ATSC video standard: https://en.wikipedia.org/wiki/ATSC_standards
 [^6]: SMPTE timecode specification: https://pub.smpte.org/pub/st12-1/st0012-1-2014.pdf
 [^7]: Apple CoreMedia CMTime: https://developer.apple.com/documentation/coremedia/cmtime-api
+[^8]: Ticks: https://iquilezles.org/articles/ticks/
+[^9]: Flicks: https://github.com/facebookarchive/Flicks
