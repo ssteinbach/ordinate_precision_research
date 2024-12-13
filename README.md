@@ -134,7 +134,7 @@ See: [results.md](results.md)
   to synchronize a time value that is past the floating point accuracy limit, it
   doesn't matter if you compute the input with integer accuracy if you still
   need to use a floating point number without sufficient accuracy to convert
-  into the other space (IE fetching an audio sample during a long running video
+  into the other space such as occurs when fetching an audio sample during a long running video
   timeline)
 
 ## Todo List
