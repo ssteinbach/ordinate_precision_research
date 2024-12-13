@@ -641,7 +641,7 @@ test "NTSC 24 vs 44100 phase offset track"
                 // 48000,
                 // 192000,
             },
-            ) |rate_a| 
+        ) |rate_a| 
         {
             for (
                 &[_]T{
@@ -654,7 +654,7 @@ test "NTSC 24 vs 44100 phase offset track"
                     // 48000,
                     // 192000,
                 },
-                ) |rate_b| 
+            ) |rate_b| 
             {
                 if (rate_a == rate_b) {
                     continue;
