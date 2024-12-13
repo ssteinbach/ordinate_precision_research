@@ -136,20 +136,36 @@ test "rational_time: TimeInterval"
     );
 }
 
-test "rational_time: joint intervals"
+/// build a floating point number of the specified type from a rational
+pub fn rational_as(
+    comptime T: type,
+    input: rational_time.Rational64,
+) T
 {
+    const num : T = @floatFromInt(input.num);
+    const den : T = @floatFromInt(input.den);
+
+    return num/den;
+}
+
+test "rational_time: double equality without strict equality"
+{
+    // This test demonstrates two numbers that are equal as floats but are 
+    // different rationals.
+
     // joint period
     const ntsc30 = rational_time.rational64_create(24000, 1001);
     const audio44100 = rational_time.rational64_create(1, 44100);
     const expected = rational_time.rational64_create(146763520, 6306300);
     const computed = rational_time.rational64_joint_period(ntsc30, audio44100);
-    std.debug.print(
-        "expected: {}, computed: {}\n",
-        .{ expected, computed }
+
+    try std.testing.expectEqual(
+        false,
+        rational_time.rational64_equal(expected, computed)
     );
 
-    // @TODO, the expected and compute values match exactly as doubles, but the
-    // rational64_equal function reports inequality. needs investigation.
-    // The routine is usuable as is though.
-    //try std.testing.expect(rational_time.rational64_equal(expected, computed));
+    try std.testing.expectEqual(
+        rational_as(f64, expected),
+        rational_as(f64, computed),
+    );
 }
