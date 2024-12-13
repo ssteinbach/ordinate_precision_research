@@ -668,8 +668,6 @@ test "NTSC 24 vs 44100 phase offset track"
 
                 const TARGET_EPSILON = @max(EPS_A, EPS_B);
 
-                // std.debug.print("inc_a: {d} inc_b: {d}\n", .{ inc_a_s, inc_b_s });
-
                 if (inc_a_s == 0 or inc_b_s == 0) {
                     continue;
                 }
@@ -692,11 +690,6 @@ test "NTSC 24 vs 44100 phase offset track"
                 {
                     next_multiple = @as(T, @floatFromInt(i))*lcm;
 
-                    // std.debug.print(
-                    //     "next_multiple: {d} current a : {d} b: {d}\n",
-                    //     .{ next_multiple, current_a, current_b, }
-                    // );
-                    //
                     while (@abs(next_multiple - current_a) > EPS_A) {
                         current_a += inc_a_s;
                     }
