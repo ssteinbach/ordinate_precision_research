@@ -135,7 +135,7 @@ See: [results.md](results.md)
   doesn't matter if you compute the input with integer accuracy if you still
   need to use a floating point number without sufficient accuracy to convert
   into the other space such as occurs when fetching an audio sample during a long running video
-  timeline)
+  timeline.
 
 ## Todo List
 
