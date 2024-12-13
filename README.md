@@ -130,7 +130,7 @@ See: [results.md](results.md)
 * For a system that uses a floating-point based number, it is possible to
   compute the accuracy limits imposed by the system and the number bit width.
 * For systems that are using integers, conversions to floating point numbers
-  are still subject to the limits of floating point accuracy.  IE if you need
+  are still subject to the limits of floating point accuracy.  If you need
   to synchronize a point that is past the floating point accuracy limit, it
   doesn't matter if you compute the input with integer accuracy if you still
   need to use a floating point number without sufficient accuracy to convert
