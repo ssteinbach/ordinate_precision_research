@@ -96,7 +96,7 @@ test "rational_time:rational32_create"
     try std.testing.expect(rational_time.rational32_equal(k, l));
     // div
     const m = rational_time.rational32_normalize(
-        rational_time.rational32_div(l, f)
+        rational_time.rational32_div(l, f),
     );
     try std.testing.expect(rational_time.rational32_equal(a, m));
 }
@@ -114,7 +114,7 @@ test "rational_time: TimeInterval"
     try std.testing.expect(
         rational_time.rational32_equal(
             rational_time.tinterval32_duration(t1),
-            dur1
+            dur1,
         )
     );
 
@@ -127,12 +127,12 @@ test "rational_time: TimeInterval"
     try std.testing.expect(
         rational_time.rational32_equal(
             rational_time.tinterval32_duration(t3),
-            dur1
+            dur1,
         )
     );
     try std.testing.expectEqual(
         rational_time.tinterval32_rate_frames(t2),
-        24
+        24,
     );
 }
 
