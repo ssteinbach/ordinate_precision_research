@@ -25,10 +25,10 @@ const rational_time = @cImport(
 const TYPES = &.{
     f32,
     f64,
-    // @TODO: add iteration limits to all the tests so that we can turn on the 
-    //        f128 case
-    // f128,
+   // f128,
 };
+
+const ITER_MAX = 10000000000;
 
 const TABLE_HEADER_RAT_SUM_PROD = (
     \\ 
@@ -252,7 +252,7 @@ test "Floating point product vs Sum Test"
                         current,
                         tolerance,
                     )
-                    and iter < 100000000
+                    and iter < ITER_MAX
                 ) 
                 {
                     iter += 1;
@@ -334,7 +334,7 @@ test "Floating point product vs Sum Test w/ Scale"
                         current,
                         tolerance,
                     )
-                    and iter < 100000000
+                    and iter < ITER_MAX
                 ) 
                 {
                     iter += 1;
@@ -393,6 +393,8 @@ test "Floating point division to integer test"
         .{},
     );
 
+    var buf:[1024]u8 = undefined;
+
     inline for (TYPES)
         |T| 
     {
@@ -417,7 +419,7 @@ test "Floating point division to integer test"
             var input_t: T = rate;
             var expected_t: u128 = 1.0;
 
-            var iters: usize = 0;
+            var iters: u128 = 0;
             const mult = 10;
 
             var t_start = try std.time.Timer.start();
@@ -425,7 +427,7 @@ test "Floating point division to integer test"
             var measured: u128 = undefined;
             var msg: []const u8 = undefined;
 
-            while (true) 
+            while (iters < ITER_MAX) 
             {
                 const div : T = input_t / rate;
                 const fract : T = div - @trunc(div);
@@ -460,13 +462,14 @@ test "Floating point division to integer test"
             );
 
             std.debug.print(
-                " | {d} | {d}e{d} | {s} | {d} |  {d} | {d} | {e:0.2} | \n",
+                " | {d} | {d}e{d} | {s} | {d} | {s} | {d} | {d} | {e:0.2} | \n",
                 .{
                     rate,
                     mult,
                     iters,
                     msg,
                     input_t,
+                    try time_string(&buf, input_t),
                     expected_t,
                     measured,
                     cycles_per_s,
@@ -527,7 +530,10 @@ test "sin big number drift test"
 
             var t_start = try std.time.Timer.start();
 
-            while (@abs(test_value - initial_value) < TARGET_EPSILON) 
+            while (
+                @abs(test_value - initial_value) < TARGET_EPSILON
+                and i < ITER_MAX
+            ) 
                 : (i += 1) 
             {
                 test_value = std.math.sin(current_value);
@@ -677,7 +683,8 @@ test "NTSC 24 vs 44100 phase offset track"
 
                 while (
                     @abs(current_a - current_b) < TARGET_EPSILON 
-                    and next_multiple < 60 * 60 * 24 * 1
+                    and next_multiple < 60 * 60 * 24 * 2
+                    and i < ITER_MAX
                 ) 
                 {
                     next_multiple = @as(T, @floatFromInt(i))*lcm;
