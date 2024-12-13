@@ -123,7 +123,7 @@ See: [results.md](results.md)
 * Given a system that aims to allow warping,  and audio rates or NTSC rates however, a
   floating point number may be a better choice.
 * Floating point numbers do not suffer the same accuracy penalties under
-  multiplication that integer rationals do
+  multiplication that integer rationals do.
 * In the limit, integer rational implementations reinvent floating point
   numbers without the benefit of hardware acceleration and deep software
   support.
