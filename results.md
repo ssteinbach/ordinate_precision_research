@@ -72,7 +72,7 @@ OK
 4/7 main.test.Floating point product vs Sum Test w/ Scale...
 
 ## Sum/Product equality tests
-Reports how many iterations before the sum is not equal to the product by more than half a frame
+Reports how many iterations before the sum is not equal to the product by more than half a frame.
 
 ### Type: f32
  
