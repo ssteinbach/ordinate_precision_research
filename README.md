@@ -119,9 +119,10 @@ See: [results.md](results.md)
   representations present in audio/video engineering, including integer
   rational, and various bit depths of floating point number.
 * If your system does not require time warps, than integers, or "factorized
-  integers"/integer rationals (if you're not mixing rates) is probably sufficient.
-* Given a system that aims to allow warping,  and audio rates or NTSC rates however, a
-  floating point number may be a better choice.
+  integers"/integer rationals (if you're not mixing rates) is probably
+  sufficient.
+* Given a system that aims to allow warping,  and audio rates or NTSC rates
+  however, a floating point number may be a better choice.
 * Floating point numbers do not suffer the same accuracy penalties under
   multiplication that integer rationals do.
 * In the limit, integer rational implementations reinvent floating point
@@ -134,8 +135,8 @@ See: [results.md](results.md)
   to synchronize a time value that is past the floating point accuracy limit, it
   doesn't matter if you compute the input with integer accuracy if you still
   need to use a floating point number without sufficient accuracy to convert
-  into the other space such as occurs when fetching an audio sample during a long running video
-  timeline.
+  into the other space such as occurs when fetching an audio sample during a
+  long running video timeline.
 
 ## Todo List
 
