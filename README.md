@@ -119,10 +119,10 @@ See: [results.md](results.md)
   representations present in audio/video engineering, including integer
   rational, and various bit depths of floating point number.
 * If your system does not require time warps, than integers, or "factorized
-  integers"/integer rationals (if you're not mixing rates) is probably
+  integers"/integer rationals (if you're not mixing rates) are probably
   sufficient.
-* Given a system that aims to allow warping,  and audio rates or NTSC rates
-  however, a floating point number may be a better choice.
+* For a system that aims to allow warping, audio rates, or NTSC rates,
+  a floating point number may be a better choice.
 * Floating point numbers do not suffer the same accuracy penalties under
   multiplication that integer rationals do.
 * In the limit, integer rational implementations reinvent floating point
