@@ -1,16 +1,9 @@
 //! A series of tests to explore floating point accuracy over large number
 //! ranges
 //!
-//! Falsifiable Hypothesis:
-//!
-//! Attempting to prove that a rational with an integer component is necessary
-//! to maintain precision over large time scales and under math.
-//!
-//! Methodology:
-//!
-//! Construct double precision values that fail precision tests thus requiring
-//! an integer rational.
-//!
+//! See results.md for the results of these tests.
+//! See README.md in this repository for a detailed description of methods and
+//! analysis of results.
 
 const std = @import("std");
 
@@ -19,7 +12,6 @@ const rational_time = @cImport(
         @cInclude("rational_time.c");
     }
 );
-
 
 
 /// Types to test.  f128 is inconsistently supported outside of zig.  Some
@@ -62,8 +54,8 @@ fn picture_rates_as(
     };
 }
 
+/// Iteration limit (only hit when using f128, which is disabled in the code)
 const ITER_MAX = 10000000000;
-
 
 const TABLE_HEADER_RAT_SUM_PROD = (
     \\ 
@@ -152,7 +144,6 @@ test "rational time test sum/product"
 }
 
 
-
 test "rational time test sum/product w/ scale" 
 {
     std.debug.print(
@@ -231,7 +222,6 @@ test "rational time test sum/product w/ scale"
 
     std.debug.print("\n", .{});
 }
-
 
 
 const TABLE_HEADER_FP_SUM_PRODUCT = (
@@ -314,7 +304,6 @@ test "Floating point product vs Sum Test"
 }
 
 
-
 test "Floating point product vs Sum Test w/ Scale" 
 {
     std.debug.print(
@@ -389,22 +378,32 @@ test "Floating point product vs Sum Test w/ Scale"
 }
 
 
-
 /// write a string with a suffix for the time scale (ie 10.1s) into buf
 fn time_string(
     buf: []u8,
     val: anytype,
 ) ![]u8 
 {
-    return (if (val < 60)
-        try std.fmt.bufPrint(buf, "{d:0.3}s", .{val})
-    else if (val < 60 * 60)
-        try std.fmt.bufPrint(buf, "{d:0.3}m", .{val / 60})
-    else if (val < 60 * 60 * 24)
-        try std.fmt.bufPrint(buf, "{d:0.3}h", .{val / (60 * 60)})
-    else
-        try std.fmt.bufPrint(buf, "{d:0.3}d", .{val / (60 * 60 * 24)}));
+    return (
+        if (val < 60)
+            try std.fmt.bufPrint(buf, "{d:0.3}s", .{val})
+        else if (val < 60 * 60)
+            try std.fmt.bufPrint(buf, "{d:0.3}m", .{val / 60})
+        else if (val < 60 * 60 * 24)
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}h",
+                .{val / (60 * 60)}
+            )
+        else
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}d",
+                .{val / (60 * 60 * 24)}
+            )
+    );
 }
+
 
 const TABLE_HEADER_TIME_TO_FRAME_N = (
     \\ 
@@ -498,7 +497,6 @@ test "Floating point division to integer test"
 
     std.debug.print("\n", .{});
 }
-
 
 
 const TABLE_HEADER_SIN_DRIFT_TEST = (
@@ -607,7 +605,6 @@ fn next_greater_multiple(
     );
     return (@ceil(current / lcm)) * lcm;
 }
-
 
 
 const TABLE_HEADER_PHASE_OFFSET = (
