@@ -1,16 +1,9 @@
 //! A series of tests to explore floating point accuracy over large number
 //! ranges
 //!
-//! Falsifiable Hypothesis:
-//!
-//! Attempting to prove that a rational with an integer component is necessary
-//! to maintain precision over large time scales and under math.
-//!
-//! Methodology:
-//!
-//! Construct double precision values that fail precision tests thus requiring
-//! an integer rational.
-//!
+//! See results.md for the results of these tests.
+//! See README.md in this repository for a detailed description of methods and
+//! analysis of results.
 
 const std = @import("std");
 
@@ -20,14 +13,48 @@ const rational_time = @cImport(
     }
 );
 
+
 /// Types to test.  f128 is inconsistently supported outside of zig.  Some
 /// preliminary testing finds it to be ~100x slower than f64.
 const TYPES = &.{
     f32,
     f64,
-   // f128,
+    // f128,
 };
 
+/// builds the standard rate array
+fn rates_as(
+    comptime T: type,
+) [8]T
+{
+    return picture_rates_as(T) ++ audio_rates_as(T);
+}
+
+fn audio_rates_as(
+    comptime T: type,
+) [3]T
+{
+    return [_]T{
+        44100.0,
+        48000.0,
+        192000.0,
+    };
+}
+
+fn picture_rates_as(
+    comptime T: type,
+) [5]T
+{
+    return [_]T{
+        24.0,
+        24.0 * 1000.0 / 1001.0,
+        25.0,
+        30.0 * 1000.0 / 1001.0,
+        120,
+    };
+}
+
+/// Iteration limit (only hit when using f128, which is disabled in the code)
 const ITER_MAX = 10000000000;
 
 const TABLE_HEADER_RAT_SUM_PROD = (
@@ -116,6 +143,7 @@ test "rational time test sum/product"
     std.debug.print("\n", .{});
 }
 
+
 test "rational time test sum/product w/ scale" 
 {
     std.debug.print(
@@ -195,6 +223,7 @@ test "rational time test sum/product w/ scale"
     std.debug.print("\n", .{});
 }
 
+
 const TABLE_HEADER_FP_SUM_PRODUCT = (
     \\ 
     \\ | rate | iterations | tolerance | wall clock time | iterations/s |
@@ -220,17 +249,8 @@ test "Floating point product vs Sum Test"
             .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT },
         );
 
-        for (
-            [_]T{
-                24.0,
-                24.0 * 1000.0 / 1001.0,
-                30.0 * 1000.0 / 1001.0,
-                120,
-                44100.0,
-                48000.0,
-                192000.0,
-            },
-        ) |rate| 
+        for (rates_as(T)) 
+            |rate| 
         {
             const increment: T = @floatCast(1.0 / rate);
 
@@ -283,6 +303,7 @@ test "Floating point product vs Sum Test"
     std.debug.print("\n", .{});
 }
 
+
 test "Floating point product vs Sum Test w/ Scale" 
 {
     std.debug.print(
@@ -302,17 +323,8 @@ test "Floating point product vs Sum Test w/ Scale"
             .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT },
         );
 
-        for (
-            [_]T{
-                24.0,
-                24.0 * 1000.0 / 1001.0,
-                30.0 * 1000.0 / 1001.0,
-                120,
-                44100.0,
-                48000.0,
-                192000.0,
-            },
-        ) |rate| 
+        for (rates_as(T)) 
+            |rate| 
         {
             const increment: T = @floatCast(0.5 * (1.0 / rate));
 
@@ -365,21 +377,33 @@ test "Floating point product vs Sum Test w/ Scale"
     std.debug.print("\n", .{});
 }
 
+
 /// write a string with a suffix for the time scale (ie 10.1s) into buf
 fn time_string(
     buf: []u8,
     val: anytype,
 ) ![]u8 
 {
-    return (if (val < 60)
-        try std.fmt.bufPrint(buf, "{d:0.3}s", .{val})
-    else if (val < 60 * 60)
-        try std.fmt.bufPrint(buf, "{d:0.3}m", .{val / 60})
-    else if (val < 60 * 60 * 24)
-        try std.fmt.bufPrint(buf, "{d:0.3}h", .{val / (60 * 60)})
-    else
-        try std.fmt.bufPrint(buf, "{d:0.3}d", .{val / (60 * 60 * 24)}));
+    return (
+        if (val < 60)
+            try std.fmt.bufPrint(buf, "{d:0.3}s", .{val})
+        else if (val < 60 * 60)
+            try std.fmt.bufPrint(buf, "{d:0.3}m", .{val / 60})
+        else if (val < 60 * 60 * 24)
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}h",
+                .{val / (60 * 60)}
+            )
+        else
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}d",
+                .{val / (60 * 60 * 24)}
+            )
+    );
 }
+
 
 const TABLE_HEADER_TIME_TO_FRAME_N = (
     \\ 
@@ -406,18 +430,8 @@ test "Floating point division to integer test"
             .{ @typeName(T), TABLE_HEADER_TIME_TO_FRAME_N },
         );
 
-        for (
-            &[_]T{
-                24.0,
-                24.0 * 1000.0 / 1001.0,
-                25.0,
-                30.0 * 1000.0 / 1001.0,
-                120,
-                44100,
-                48000,
-                192000,
-            },
-        ) |rate| 
+        for (rates_as(T))
+            |rate| 
         {
             var input_t: T = rate;
             var expected_t: u128 = 1.0;
@@ -484,6 +498,7 @@ test "Floating point division to integer test"
     std.debug.print("\n", .{});
 }
 
+
 const TABLE_HEADER_SIN_DRIFT_TEST = (
     \\ 
     \\ | rate | target epsilon | iterations | s | iter/s |
@@ -510,18 +525,8 @@ test "sin big number drift test"
             .{ @typeName(T), TABLE_HEADER_SIN_DRIFT_TEST },
         );
 
-        for (
-            &[_]T{
-                24.0,
-                24.0 * 1000.0 / 1001.0,
-                25.0,
-                30.0 * 1000.0 / 1001.0,
-                120,
-                44100,
-                48000,
-                192000,
-            },
-        ) |rate| 
+        for (rates_as(T))
+            |rate| 
         {
             //Initial value of pi/4
             var current_value: T = std.math.pi / 4.0;
@@ -566,6 +571,7 @@ test "sin big number drift test"
     std.debug.print("\n", .{});
 }
 
+
 fn least_common_multiple(
     comptime T: type,
     a: T,
@@ -600,23 +606,20 @@ fn next_greater_multiple(
     return (@ceil(current / lcm)) * lcm;
 }
 
+
 const TABLE_HEADER_PHASE_OFFSET = (
     \\ 
     \\ | rate_a | rate_b | iterations | next multiple | current_a | current_b | delta |
     \\ |--------|--------|------------|---------------|-----------|-----------|-------|
 );
 
-
-test "NTSC 24 vs 44100 phase offset track" 
+test "Phase Offset Test" 
 {
-    // idea is to walk along an NTSC number line and compare the number of
-    // samples of 44100 computed
-
     std.debug.print(
-        "\n\n## NTSC 24 vs 44100 Phase Offset\n\n" 
+        "\n\nPhase Offset Test\n\n" 
         ++ "Measures the number of iterations of finding the next common "
-        ++ "multiple of NTSC 24 and 44100 such that the sum of each of the "
-        ++ "rates does not equal.\n",
+        ++ "multiple of two rates such that the sum of each of the "
+        ++ "rates does not equal. Will terminate after 2 days of time.\n",
         .{},
     );
 
@@ -630,31 +633,11 @@ test "NTSC 24 vs 44100 phase offset track"
 
         var buf : [1024]u8 = undefined;
 
-        for (
-            &[_]T{
-                24.0,
-                24.0 * 1000.0 / 1001.0,
-                25.0,
-                30.0 * 1000.0 / 1001.0,
-                120,
-                // 44100,
-                // 48000,
-                // 192000,
-            },
-        ) |rate_a| 
+        for (picture_rates_as(T))
+            |rate_a| 
         {
-            for (
-                &[_]T{
-                    24.0,
-                    24.0 * 1000.0 / 1001.0,
-                    25.0,
-                    30.0 * 1000.0 / 1001.0,
-                    120,
-                    // 44100,
-                    // 48000,
-                    // 192000,
-                },
-            ) |rate_b| 
+            for (picture_rates_as(T))
+                |rate_b| 
             {
                 if (rate_a == rate_b) {
                     continue;
@@ -667,8 +650,6 @@ test "NTSC 24 vs 44100 phase offset track"
                 const EPS_B = inc_b_s / 2;
 
                 const TARGET_EPSILON = @max(EPS_A, EPS_B);
-
-                // std.debug.print("inc_a: {d} inc_b: {d}\n", .{ inc_a_s, inc_b_s });
 
                 if (inc_a_s == 0 or inc_b_s == 0) {
                     continue;
@@ -692,11 +673,6 @@ test "NTSC 24 vs 44100 phase offset track"
                 {
                     next_multiple = @as(T, @floatFromInt(i))*lcm;
 
-                    // std.debug.print(
-                    //     "next_multiple: {d} current a : {d} b: {d}\n",
-                    //     .{ next_multiple, current_a, current_b, }
-                    // );
-                    //
                     while (@abs(next_multiple - current_a) > EPS_A) {
                         current_a += inc_a_s;
                     }
