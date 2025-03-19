@@ -63,6 +63,7 @@ const TABLE_HEADER_RAT_SUM_PROD = (
     \\ |-----------|------------|---|-----|---------|--------|
 );
 
+
 test "rational time test sum/product" 
 {
     std.debug.print(
@@ -221,6 +222,181 @@ test "rational time test sum/product w/ scale"
     }
 
     std.debug.print("\n", .{});
+}
+
+const TABLE_HEADER_RAT_LIMITS = (
+    \\ 
+    \\ | rate 1 | rate 2 | last index | wall clock time |
+    \\ |--------|--------|------------|-----------------|
+);
+
+const TABLE_HEADER_RAT_TIME_LIMITS = (
+    \\ 
+    \\ | rate | last index | wall clock time |
+    \\ |------|------------|-----------------|
+);
+
+test "integer rational limits"
+{    
+    std.debug.print(
+        "\n\n## Integer Rational Limits\n\n"
+        ++ "Derives the number of amount of time MAX_INT (for i32) represents "
+        ++ "for an integer rational (i32/i32) at various media rates.  This "
+        ++ "not take renormalization into consideration, which might occur "
+        ++ "of accumulation or math"
+        ,
+        .{TABLE_HEADER_RAT_TIME_LIMITS},
+    );
+
+    var buf: [1024]u8 = undefined;
+
+    const i_rates = [_]i32{ 24, 25, 30, 120, 44100, 48000, 192000 };
+    var INCREMENTS : [i_rates.len + 2]rational_time.Rational32 = undefined;
+    var RATE_STRINGS : [i_rates.len + 2][16]u8 = undefined;
+
+    // integer rates
+    for (i_rates, 0..)
+        |rate, ind|
+    {
+        INCREMENTS[ind] = rational_time.rational32_create(1, rate);
+        _ = try std.fmt.bufPrint(&RATE_STRINGS[ind], "{d}", .{ rate });
+    }
+
+    // fractional rates
+    for ([_]i32{24, 30}, i_rates.len..i_rates.len + 2)
+        |rate, ind|
+    {
+        INCREMENTS[ind] = rational_time.rational32_create(1001, rate * 1000);
+        var f_val : f32 = @floatFromInt(rate);
+        f_val *= (1000.0/1001.0);
+
+        _ = try std.fmt.bufPrint(
+            &RATE_STRINGS[ind],
+            "{d}",
+            .{ f_val }
+        );
+    }
+
+    const max_index:f32 = @floatFromInt(std.math.maxInt(i32));
+
+    for (INCREMENTS, 0..)
+        |inc_a, ind|
+    {
+        const num: f32 = @floatFromInt(inc_a.num);
+        const den: f32 = @floatFromInt(inc_a.den);
+
+        const time_str = try time_string(
+            &buf,
+            (max_index*num)/den,
+        );
+
+        std.debug.print(
+            " | {s} | {d} | {s} | \n",
+            .{
+                RATE_STRINGS[ind],
+                max_index,
+                time_str,
+            },
+        );
+    }
+
+    // set up next header
+    std.debug.print( "\n{s}\n", .{ TABLE_HEADER_RAT_LIMITS, });
+
+
+    for (INCREMENTS[0..INCREMENTS.len - 1], 0..)
+        |inc_a, ind_a|
+    {
+        for (INCREMENTS[ind_a..], ind_a..)
+            |inc_b, ind_b|
+        {
+            const inc_ab = rational_time.rational32_add(inc_a, inc_b);
+
+            // const num: f32 = @floatFromInt(inc_ab.num);
+            const den: f32 = @floatFromInt(inc_ab.den);
+
+            const time_str = try time_string(
+                &buf,
+                (max_index)/den,
+            );
+
+            std.debug.print(
+                " | {s} | {s} | {d}/{d} | {d} | {s} | \n",
+                .{
+                    RATE_STRINGS[ind_a],
+                    RATE_STRINGS[ind_b],
+                    inc_ab.num,
+                    inc_ab.den,
+                    max_index,
+                    time_str,
+                },
+            );
+        }
+    }
+
+    // for (
+    //     [_]rational_time.Rational32{
+    //         rational_time.rational32_create(1001, 24 * 1000),
+    //         rational_time.rational32_create(1001, 30 * 1000),
+    //     }
+    // ) |time_increment| 
+    // {
+    //     // value to accumulate
+    //     var current = rational_time.rational32_create(
+    //         0,
+    //         @intCast(time_increment.den),
+    //     );
+    //
+    //     // loop variables
+    //     var mul = current;
+    //     var is_equal = true;
+    //
+    //     var i : usize = 0;
+    //
+    //     var t_start = try std.time.Timer.start();
+    //     while (
+    //         is_equal
+    //         and i < ITER_MAX
+    //     ) 
+    //     {
+    //         current = rational_time.rational32_add(current, time_increment);
+    //
+    //         i += 1;
+    //         mul = rational_time.rational32_mul(
+    //             time_increment,
+    //             rational_time.rational32_create(@intCast(i), 1),
+    //         );
+    //
+    //         is_equal = rational_time.rational32_equal(current, mul);
+    //     }
+    //
+    //     const compute_time_s = (
+    //         @as(f64, @floatFromInt(t_start.read())) / std.time.ns_per_s
+    //     );
+    //     const cycles_per_s = @as(f64, @floatFromInt(i)) / compute_time_s;
+    //
+    //     const summed_time = (
+    //         @as(f64, @floatFromInt(current.num)) 
+    //         / @as(f64, @floatFromInt(current.den))
+    //     );
+    //
+    //     const time_str = try time_string(&buf, summed_time);
+    //
+    //     std.debug.print(
+    //         " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
+    //         .{
+    //             time_increment.num, time_increment.den,
+    //             i,
+    //             time_str,
+    //             current.num, current.den,
+    //             mul.num, mul.den,
+    //             cycles_per_s,
+    //         },
+    //     );
+    // }
+    //
+    // std.debug.print("\n", .{});
+
 }
 
 
