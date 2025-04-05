@@ -10,7 +10,7 @@ We investigate common assumptions about the representation of time values as an 
 We show the largest values representable, and when the math on various reprsentations stops being exact to various degrees, such as being off by a millisecond, or a half of a frame.
 
 --------------------------------------------------------------------------------
-### TL/DR:
+### TL/DR
 
 See the machine generated results this project generates: [results.md](results.md)
 
