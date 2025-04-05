@@ -13,7 +13,6 @@ const rational_time = @cImport(
     }
 );
 
-
 /// Types to test.  f128 is inconsistently supported outside of zig.  Some
 /// preliminary testing finds it to be ~100x slower than f64.
 const TYPES = &.{
@@ -232,9 +231,52 @@ const TABLE_HEADER_RAT_LIMITS = (
 
 const TABLE_HEADER_RAT_TIME_LIMITS = (
     \\ 
-    \\ | rate | last index | wall clock time |
-    \\ |------|------------|-----------------|
+    \\ | type | rate | last index | wall clock time |
+    \\ |------|------|------------|-----------------|
 );
+
+test "number type limits"
+{
+    var buf : [1024]u8 = undefined;
+
+    // integer limits
+    inline for ([_]type{i32, i64, i128})
+        |T|
+    {
+        const max_int = std.math.maxInt(T);
+        const time_str = try time_string(
+            &buf,
+            @as(f64, @floatFromInt(max_int)) / 192000.0,
+        );
+        std.debug.print(
+            " | {s} | {d} | {s} | \n",
+            .{ 
+                @typeName(T),
+                max_int,
+                time_str,
+            }
+        );
+    }
+
+    // float limits
+    inline for ([_]type{ f32, f64, f128 })
+        |T|
+    {
+        const float_max = std.math.floatMax(T);
+        const time_str = try time_string(
+            &buf,
+            @as(f64, @floatCast(float_max)) / 24.0,
+        );
+        std.debug.print(
+            " | {s} | {d} | {s} | \n",
+            .{ 
+                @typeName(T),
+                float_max,
+                time_str,
+            }
+        );
+    }
+}
 
 test "integer rational limits"
 {    
@@ -243,7 +285,7 @@ test "integer rational limits"
         ++ "Derives the number of amount of time MAX_INT (for i32) represents "
         ++ "for an integer rational (i32/i32) at various media rates.  This "
         ++ "not take renormalization into consideration, which might occur "
-        ++ "of accumulation or math"
+        ++ "of accumulation or math.\n{s}\n"
         ,
         .{TABLE_HEADER_RAT_TIME_LIMITS},
     );
@@ -561,21 +603,32 @@ fn time_string(
 ) ![]u8 
 {
     return (
+        // seconds
         if (val < 60)
             try std.fmt.bufPrint(buf, "{d:0.3}s", .{val})
+        // minutes
         else if (val < 60 * 60)
             try std.fmt.bufPrint(buf, "{d:0.3}m", .{val / 60})
+        // hours
         else if (val < 60 * 60 * 24)
             try std.fmt.bufPrint(
                 buf,
                 "{d:0.3}h",
                 .{val / (60 * 60)}
             )
-        else
+        // days
+        else if (val < 60 * 60 * 24 * 365)
             try std.fmt.bufPrint(
                 buf,
                 "{d:0.3}d",
                 .{val / (60 * 60 * 24)}
+            )
+        // years
+        else
+            try std.fmt.bufPrint(
+                buf,
+                "{d:0.3}y",
+                .{val / (60 * 60 * 24 * 365)}
             )
     );
 }
