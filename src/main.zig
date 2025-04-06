@@ -13,6 +13,11 @@ const rational_time = @cImport(
     }
 );
 
+test {
+    // fetch tests for c library
+    _ = @import("rational_tests.zig");
+}
+
 /// Types to test.  f128 is inconsistently supported outside of zig.  Some
 /// preliminary testing finds it to be ~100x slower than f64.
 const TYPES = &.{
@@ -926,4 +931,9 @@ test "Phase Offset Test"
             }
         }
     }
+}
+
+pub fn main() void
+{
+    std.debug.print("Run `zig build test` to see output.", .{});
 }
