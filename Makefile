@@ -1,10 +1,17 @@
+# repo was originally built around zig test and not zig build
+#
+# @TODO: rejigger around zig build instead of zig test
+
 all:
-	zig test -I. -O ReleaseSafe rational_tests.zig
-	time zig test -O ReleaseSafe -I. main.zig
+	zig test -Isrc -O ReleaseSafe src/rational_tests.zig
+	time zig test -O ReleaseSafe -Isrc src/main.zig
 
 update:
-	zig test -O ReleaseSafe -I. main.zig >& results.md
+	zig test -O ReleaseSafe -Isrc src/main.zig >& results.md
 
 int:
-	zig test -I. rational_tests.zig
-	zig test main.zig -I. --test-filter "rational"
+	zig test -Isrc src/rational_tests.zig
+	zig test src/main.zig -Isrc --test-filter "rational"
+
+build_test:
+	zig build test
