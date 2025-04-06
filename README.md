@@ -141,7 +141,7 @@ Test Case: Demonstrate exacerbation of error resulting from mixed mathematical o
 
 1. Install Zig 0.13.0
 2. run:
-`zig test -I. main.zig`
+`zig test -Isrc -OReleaseSafe src/main.zig`
 or
 `make all`
 
@@ -151,7 +151,7 @@ To update results:
 
 To run a specific test:
 
-`zig test -I. main.zig --test-filter "name_of_test"`
+`zig test -Isrc src/main.zig --test-filter "name_of_test"`
 
 --------------------------------------------------------------------------------
 ## Results
