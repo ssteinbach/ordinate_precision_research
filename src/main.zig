@@ -523,7 +523,10 @@ pub fn floating_point_product_vs_sum_test(
             "{s}",
             .{@typeName(T)},
         );
-        const loop_prog = progress.start(buf_prog, 1);
+        const loop_prog = progress.start(
+            buf_prog,
+            rates_as(T).len
+        );
         defer loop_prog.end();
         defer progress.completeOne();
 
@@ -535,6 +538,12 @@ pub fn floating_point_product_vs_sum_test(
         for (rates_as(T)) 
             |rate| 
         {
+            const loop_prog_buf = try std.fmt.bufPrint(
+                &buf, 
+                "{s}: {d} hz",
+                .{@typeName(T), rate},
+            );
+            loop_prog.setName(loop_prog_buf);
             const increment: T = @floatCast(1.0 / rate);
 
             for (
@@ -580,6 +589,7 @@ pub fn floating_point_product_vs_sum_test(
                     .{ rate, iter, tolerance, time_str, cycles_per_s },
                 );
             }
+            defer loop_prog.completeOne();
         }
     }
 
@@ -589,8 +599,15 @@ pub fn floating_point_product_vs_sum_test(
 
 pub fn floating_point_product_vs_sum_test_scale(
     writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
 ) !void
 {
+    const progress = parent_progress.start(
+        "Sum/Product equality tests (With a scale)",
+        TYPES.len,
+    );
+    defer progress.end();
+
     try writer.print(
         "\n\n## Sum/Product equality tests\nReports how many iterations "
         ++ "before the sum is not equal to the product by more than half a"
@@ -603,6 +620,18 @@ pub fn floating_point_product_vs_sum_test_scale(
     inline for (TYPES) 
         |T| 
     {
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{s}",
+            .{@typeName(T)},
+        );
+        const loop_prog = progress.start(
+            buf_prog,
+            rates_as(T).len
+        );
+        defer loop_prog.end();
+        defer progress.completeOne();
+
         try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT },
@@ -611,6 +640,13 @@ pub fn floating_point_product_vs_sum_test_scale(
         for (rates_as(T)) 
             |rate| 
         {
+
+            const loop_prog_buf = try std.fmt.bufPrint(
+                &buf, 
+                "{s}: {d} hz",
+                .{@typeName(T), rate},
+            );
+            loop_prog.setName(loop_prog_buf);
             const increment: T = @floatCast(0.5 * (1.0 / rate));
 
             for (
@@ -656,6 +692,7 @@ pub fn floating_point_product_vs_sum_test_scale(
                     .{ rate, iter, tolerance, time_str, cycles_per_s },
                 );
             }
+            defer loop_prog.completeOne();
         }
     }
 
@@ -1043,6 +1080,7 @@ pub fn main(
         &rational_time_test_sum_product,
         &rational_time_sum_product_scale,
         &floating_point_product_vs_sum_test,
+        &floating_point_product_vs_sum_test_scale,
     };
     
     const progress = parent_progress.start(
@@ -1083,8 +1121,6 @@ pub fn main(
 
     try writer.flush();
 
-    // try floating_point_product_vs_sum_test(&writer);
-    // try floating_point_product_vs_sum_test_scale(&writer);
     // try floating_point_division_to_integer_test(&writer);
     // try sin_big_number_drift_test(&writer);
     // try phase_offset_test(&writer);
