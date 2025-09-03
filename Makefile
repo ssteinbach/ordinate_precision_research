@@ -1,18 +1,11 @@
-# repo was originally built around zig test and not zig build
+# Makefile for ordinate_precision_research
 #
-# @TODO: rejigger around zig build instead of zig test
+# Makes it convienent to generate and run program to produce results.md
 
-all:
-	zig test -Isrc -O ReleaseSafe src/rational_tests.zig
-	time zig test -O ReleaseSafe -Isrc src/main.zig
+all: update
+	cat results.md
 
 update:
-	zig test -Doptimize=ReleaseSafe -Isrc src/main.zig >& results.md
-	zig test -Doptimize=ReleaseSafe -Isrc src/rational_tests.zig >& results.md
+	zig build run -Doptimize=ReleaseSafe -- results.md
 
-int:
-	zig test -Isrc src/rational_tests.zig
-	zig test src/main.zig -Isrc --test-filter "rational"
-
-build_test:
-	zig build test
+.PHONY: update all
