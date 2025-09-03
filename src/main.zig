@@ -499,7 +499,8 @@ pub fn floating_point_product_vs_sum_test(
     writer: *std.io.Writer,
     parent_progress: std.Progress.Node,
 ) !void
-{    const progress = parent_progress.start(
+{    
+    const progress = parent_progress.start(
         "Sum/Product equality tests",
         TYPES.len,
     );
@@ -1050,18 +1051,34 @@ pub fn main(
     );
     defer progress.end();
 
+    // per-thread data
     var threads: [TESTS.len]std.Thread = undefined;
+    var inputs: [TESTS.len]std.io.Writer.Allocating = undefined;
 
     inline for (TESTS, 0..)
         |test_fn, i|
     {
-        threads[i] = try std.Thread.spawn(.{}, test_fn.*, .{ writer, progress });
+        // configure the writer
+        inputs[i] = std.io.Writer.Allocating.init(allocator);   
+        const thread_writer = &inputs[i].writer;
+
+        threads[i] = try std.Thread.spawn(
+            .{},
+            test_fn.*,
+            .{ thread_writer, progress }
+        );
     }
 
-    for (threads)
-        |thread|
+    for (threads, 0..)
+        |thread, i|
     {
         thread.join();
+        const txt = try inputs[i].toOwnedSlice();
+        _ = try writer.write(txt);
+        try writer.flush();
+
+        allocator.free(txt);
+        inputs[i].deinit();
     }
 
     try writer.flush();
