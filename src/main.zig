@@ -13,10 +13,11 @@ const rational_time = @cImport(
     }
 );
 
-test {
-    // fetch tests for c library
-    _ = @import("rational_tests.zig");
-}
+// test {
+//     // fetch tests for c library
+//     _ = @import("rational_tests.zig");
+// }
+
 
 /// Types to test.  f128 is inconsistently supported outside of zig.  Some
 /// preliminary testing finds it to be ~100x slower than f64.
@@ -68,14 +69,24 @@ const TABLE_HEADER_RAT_SUM_PROD = (
 );
 
 
-test "rational time test sum/product" 
+pub fn rational_time_test_sum_product(
+    writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
+) !void
 {
-    std.debug.print(
+    const progress = parent_progress.start(
+        "Rational Time Sum/Product Test",
+        2
+    );
+    defer progress.end();
+
+    try writer.print(
         "\n\n# Ordinate Precision Exploration\n",
         .{},
     );
+    // try writer.flush();
 
-    std.debug.print(
+    try writer.print(
         "\n\n## Integer Rational Sum/Product Test\n\nReports how many "
         ++ "iterations before the sum of rational integers is not equal to "
         ++ "the product for NTSC rates.\n{s}\n",
@@ -91,6 +102,15 @@ test "rational time test sum/product"
         }
     ) |time_increment| 
     {
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{d}/{d}",
+            .{ time_increment.num, time_increment.den }
+        );
+        const loop_prog = progress.start(buf_prog, 1);
+        defer loop_prog.end();
+        defer progress.completeOne();
+
         // value to accumulate
         var current = rational_time.rational32_create(
             0,
@@ -132,7 +152,7 @@ test "rational time test sum/product"
 
         const time_str = try time_string(&buf, summed_time);
 
-        std.debug.print(
+        try writer.print(
             " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
             .{
                 time_increment.num, time_increment.den,
@@ -145,13 +165,22 @@ test "rational time test sum/product"
         );
     }
 
-    std.debug.print("\n", .{});
+    try writer.print("\n", .{});
 }
 
 
-test "rational time test sum/product w/ scale" 
+pub fn rational_time_sum_product_scale(
+    writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
+) !void
 {
-    std.debug.print(
+    const progress = parent_progress.start(
+        "Rational Time sum/product w/ scale",
+        2
+    );
+    defer progress.end();
+
+    try writer.print(
         "\n\n## Integer Rational Sum/Product Test w/ 0.5 Scale\n\nReports"
         ++ " how many iterations before the sum of rational integers is not "
         ++ "equal to the product for NTSC rates.\n{s}\n",
@@ -173,6 +202,15 @@ test "rational time test sum/product w/ scale"
             time_increment_in,
             SCALE
         );
+
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{d}/{d}",
+            .{ time_increment.num, time_increment.den }
+        );
+        const loop_prog = progress.start(buf_prog, 1);
+        defer loop_prog.end();
+        defer progress.completeOne();
 
         // value to accumulate
         var current = rational_time.rational32_create(
@@ -212,7 +250,7 @@ test "rational time test sum/product w/ scale"
 
         const time_str = try time_string(&buf, summed_time);
 
-        std.debug.print(
+        try writer.print(
             " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
             .{
                 time_increment.num, time_increment.den,
@@ -225,7 +263,7 @@ test "rational time test sum/product w/ scale"
         );
     }
 
-    std.debug.print("\n", .{});
+    try writer.print("\n", .{});
 }
 
 const TABLE_HEADER_RAT_LIMITS = (
@@ -240,7 +278,9 @@ const TABLE_HEADER_RAT_TIME_LIMITS = (
     \\ |------|------|------------|-----------------|
 );
 
-test "number type limits"
+pub fn number_type_limits(
+    writer: *std.io.Writer,
+) !void
 {
     var buf : [1024]u8 = undefined;
 
@@ -253,7 +293,7 @@ test "number type limits"
             &buf,
             @as(f64, @floatFromInt(max_int)) / 192000.0,
         );
-        std.debug.print(
+        writer.print(
             " | {s} | {d} | {s} | \n",
             .{ 
                 @typeName(T),
@@ -272,7 +312,7 @@ test "number type limits"
             &buf,
             @as(f64, @floatCast(float_max)) / 24.0,
         );
-        std.debug.print(
+        writer.print(
             " | {s} | {d} | {s} | \n",
             .{ 
                 @typeName(T),
@@ -283,9 +323,11 @@ test "number type limits"
     }
 }
 
-test "integer rational limits"
+pub fn integer_rational_limits(
+    writer: *std.io.Writer,
+) !void
 {    
-    std.debug.print(
+    writer.print(
         "\n\n## Integer Rational Limits\n\n"
         ++ "Derives the number of amount of time MAX_INT (for i32) represents "
         ++ "for an integer rational (i32/i32) at various media rates.  This "
@@ -337,7 +379,7 @@ test "integer rational limits"
             (max_index*num)/den,
         );
 
-        std.debug.print(
+        writer.print(
             " | {s} | {d} | {s} | \n",
             .{
                 RATE_STRINGS[ind],
@@ -348,7 +390,7 @@ test "integer rational limits"
     }
 
     // set up next header
-    std.debug.print( "\n{s}\n", .{ TABLE_HEADER_RAT_LIMITS, });
+    writer.print( "\n{s}\n", .{ TABLE_HEADER_RAT_LIMITS, });
 
 
     for (INCREMENTS[0..INCREMENTS.len - 1], 0..)
@@ -367,7 +409,7 @@ test "integer rational limits"
                 (max_index)/den,
             );
 
-            std.debug.print(
+            writer.print(
                 " | {s} | {s} | {d}/{d} | {d} | {s} | \n",
                 .{
                     RATE_STRINGS[ind_a],
@@ -429,7 +471,7 @@ test "integer rational limits"
     //
     //     const time_str = try time_string(&buf, summed_time);
     //
-    //     std.debug.print(
+    //     writer.print(
     //         " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
     //         .{
     //             time_increment.num, time_increment.den,
@@ -442,7 +484,7 @@ test "integer rational limits"
     //     );
     // }
     //
-    // std.debug.print("\n", .{});
+    // writer.print("\n", .{});
 
 }
 
@@ -453,21 +495,38 @@ const TABLE_HEADER_FP_SUM_PRODUCT = (
     \\ |------|------------|-----------|-----------------|--------------|
 );
 
-test "Floating point product vs Sum Test" 
-{
-    std.debug.print(
+pub fn floating_point_product_vs_sum_test(
+    writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
+) !void
+{    const progress = parent_progress.start(
+        "Sum/Product equality tests",
+        TYPES.len,
+    );
+    defer progress.end();
+
+    try writer.print(
         "\n\n## Sum/Product equality tests\nReports how many iterations "
         ++ "before the sum is not equal to the product by more than half a"
         ++ " frame\n",
         .{},
     );
 
-    var buf: [1024]u8 = undefined;
+    var buf: [1024]u8 = @splat(0);
 
     inline for (TYPES) 
         |T| 
     {
-        std.debug.print(
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{s}",
+            .{@typeName(T)},
+        );
+        const loop_prog = progress.start(buf_prog, 1);
+        defer loop_prog.end();
+        defer progress.completeOne();
+
+        try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT },
         );
@@ -515,7 +574,7 @@ test "Floating point product vs Sum Test"
                     current,
                 );
 
-                std.debug.print(
+                try writer.print(
                     " | {d} | {d} | {d} | {s} | {e:0.2} |\n",
                     .{ rate, iter, tolerance, time_str, cycles_per_s },
                 );
@@ -523,13 +582,15 @@ test "Floating point product vs Sum Test"
         }
     }
 
-    std.debug.print("\n", .{});
+    try writer.print("\n", .{});
 }
 
 
-test "Floating point product vs Sum Test w/ Scale" 
+pub fn floating_point_product_vs_sum_test_scale(
+    writer: *std.io.Writer,
+) !void
 {
-    std.debug.print(
+    try writer.print(
         "\n\n## Sum/Product equality tests\nReports how many iterations "
         ++ "before the sum is not equal to the product by more than half a"
         ++ " frame\n",
@@ -541,7 +602,7 @@ test "Floating point product vs Sum Test w/ Scale"
     inline for (TYPES) 
         |T| 
     {
-        std.debug.print(
+        try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_FP_SUM_PRODUCT },
         );
@@ -589,7 +650,7 @@ test "Floating point product vs Sum Test w/ Scale"
                     current,
                 );
 
-                std.debug.print(
+                try writer.print(
                     " | {d} | {d} | {d} | {s} | {e:0.2} |\n",
                     .{ rate, iter, tolerance, time_str, cycles_per_s },
                 );
@@ -597,7 +658,7 @@ test "Floating point product vs Sum Test w/ Scale"
         }
     }
 
-    std.debug.print("\n", .{});
+    try writer.print("\n", .{});
 }
 
 
@@ -645,9 +706,11 @@ const TABLE_HEADER_TIME_TO_FRAME_N = (
     \\ |------|------|---------|---------------|----------|----------|--------|
 );
 
-test "Floating point division to integer test" 
+pub fn floating_point_division_to_integer_test(
+    writer: *std.io.Writer,
+) !void
 {
-    std.debug.print(
+    try writer.print(
         "\n\n## Time to Frame Number Test\n" 
         ++ "Measures if the correct integer frame number and phase offset can" 
         ++ " be recovered from a large time value.\n",
@@ -659,7 +722,7 @@ test "Floating point division to integer test"
     inline for (TYPES)
         |T| 
     {
-        std.debug.print(
+        try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_TIME_TO_FRAME_N },
         );
@@ -712,7 +775,7 @@ test "Floating point division to integer test"
                 / compute_time_s
             );
 
-            std.debug.print(
+            try writer.print(
                 " | {d} | {d}e{d} | {s} | {d} | {s} | {d} | {d} | {e:0.2} | \n",
                 .{
                     rate,
@@ -729,7 +792,7 @@ test "Floating point division to integer test"
         }
     }
 
-    std.debug.print("\n", .{});
+    try writer.print("\n", .{});
 }
 
 
@@ -739,9 +802,11 @@ const TABLE_HEADER_SIN_DRIFT_TEST = (
     \\ |------|----------------|------------|---|--------|
 );
 
-test "sin big number drift test" 
+pub fn sin_big_number_drift_test(
+    writer: *std.io.Writer,
+) !void
 {
-    std.debug.print(
+    try writer.print(
         "\n\n## Sin Drift Test\n\n" 
         ++ "Measures the number of iterations of adding two pi to pi/4 before" 
         ++ " the sin value drifts more than half a frame from the value at"
@@ -754,7 +819,7 @@ test "sin big number drift test"
     inline for (TYPES) 
         |T| 
     {
-        std.debug.print(
+        try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_SIN_DRIFT_TEST },
         );
@@ -789,7 +854,7 @@ test "sin big number drift test"
             const cycles_per_s = @as(T, @floatFromInt(i)) / compute_time_s;
             const time_to_err_s = @as(T, @floatFromInt(i)) / rate;
 
-            std.debug.print(
+            try writer.print(
                 " | {d} | {d} | {d} | {s} | {e:0.2} | \n",
                 .{
                     rate,
@@ -802,7 +867,7 @@ test "sin big number drift test"
         }
     }
 
-    std.debug.print("\n", .{});
+    try writer.print("\n", .{});
 }
 
 
@@ -822,18 +887,19 @@ fn least_common_multiple(
 }
 
 fn next_greater_multiple(
+    writer: *std.io.Writer,
     comptime T: type,
     current: T,
     a: T,
     b: T
-) T
+) !T
 {
     const lcm = least_common_multiple(T, a, b);
 
     if (@mod(current, lcm) == 0) {
         return current + lcm;
     }
-    std.debug.print(
+    try writer.print(
         "mod: {d} current: {d} lcm2: {d}\n",
         .{ @mod(current, lcm), current, lcm }
     );
@@ -847,9 +913,11 @@ const TABLE_HEADER_PHASE_OFFSET = (
     \\ |--------|--------|------------|---------------|-----------|-----------|-------|
 );
 
-test "Phase Offset Test" 
+pub fn phase_offset_test(
+    writer: *std.io.Writer,
+) !void
 {
-    std.debug.print(
+    try writer.print(
         "\n\nPhase Offset Test\n\n" 
         ++ "Measures the number of iterations of finding the next common "
         ++ "multiple of two rates such that the sum of each of the "
@@ -860,7 +928,7 @@ test "Phase Offset Test"
     inline for (TYPES) 
         |T| 
     {
-        std.debug.print(
+        try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_PHASE_OFFSET },
         );
@@ -918,7 +986,7 @@ test "Phase Offset Test"
                     i += 1;
                 }
 
-                std.debug.print(
+                try writer.print(
                     "| {d} | {d} | {d} | {d} | {s} | {d} | {d} | {d} |\n",
                     .{ 
                         rate_a, rate_b,
@@ -933,7 +1001,78 @@ test "Phase Offset Test"
     }
 }
 
-pub fn main() void
+/// Run each test and report results
+pub fn main(
+) !u8
 {
-    std.debug.print("Run `zig build test` to see output.", .{});
+    var GPA = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = GPA.allocator();
+
+    // fetch the path to write to from args
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+
+    if (args.len != 2)
+    {
+        std.log.err(
+            "Usage: {s} path-to-output-report-file\n", 
+            .{ args[0] },
+        );
+        return 1;
+    }
+
+    const fpath = std.os.argv[1];
+
+    var buf:[1024]u8 = @splat(0);
+
+    var outfile = try std.fs.cwd().createFileZ(
+        fpath,
+        .{},
+    );
+
+    var writer_parent = outfile.writer(&buf);
+    const writer = &writer_parent.interface;
+
+    defer outfile.close();
+
+    const parent_progress = std.Progress.start(.{});
+    defer parent_progress.end();
+
+    const TESTS= &.{
+        &rational_time_test_sum_product,
+        &rational_time_sum_product_scale,
+        &floating_point_product_vs_sum_test,
+    };
+    
+    const progress = parent_progress.start(
+        "Report Tests",
+        TESTS.len,
+    );
+    defer progress.end();
+
+    var threads: [TESTS.len]std.Thread = undefined;
+
+    inline for (TESTS, 0..)
+        |test_fn, i|
+    {
+        threads[i] = try std.Thread.spawn(.{}, test_fn.*, .{ writer, progress });
+    }
+
+    for (threads)
+        |thread|
+    {
+        thread.join();
+    }
+
+    try writer.flush();
+
+    // try floating_point_product_vs_sum_test(&writer);
+    // try floating_point_product_vs_sum_test_scale(&writer);
+    // try floating_point_division_to_integer_test(&writer);
+    // try sin_big_number_drift_test(&writer);
+    // try phase_offset_test(&writer);
+
+    std.log.info("wrote report to: {s}\n", .{fpath});
+
+    return 0;
 }

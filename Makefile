@@ -7,7 +7,8 @@ all:
 	time zig test -O ReleaseSafe -Isrc src/main.zig
 
 update:
-	zig test -O ReleaseSafe -Isrc src/main.zig >& results.md
+	zig test -Doptimize=ReleaseSafe -Isrc src/main.zig >& results.md
+	zig test -Doptimize=ReleaseSafe -Isrc src/rational_tests.zig >& results.md
 
 int:
 	zig test -Isrc src/rational_tests.zig
