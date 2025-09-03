@@ -640,13 +640,13 @@ pub fn floating_point_product_vs_sum_test_scale(
         for (rates_as(T)) 
             |rate| 
         {
-
             const loop_prog_buf = try std.fmt.bufPrint(
                 &buf, 
                 "{s}: {d} hz",
                 .{@typeName(T), rate},
             );
             loop_prog.setName(loop_prog_buf);
+            defer loop_prog.completeOne();
             const increment: T = @floatCast(0.5 * (1.0 / rate));
 
             for (
@@ -692,7 +692,6 @@ pub fn floating_point_product_vs_sum_test_scale(
                     .{ rate, iter, tolerance, time_str, cycles_per_s },
                 );
             }
-            defer loop_prog.completeOne();
         }
     }
 
@@ -746,8 +745,15 @@ const TABLE_HEADER_TIME_TO_FRAME_N = (
 
 pub fn floating_point_division_to_integer_test(
     writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
 ) !void
 {
+    const progress = parent_progress.start(
+        "Time to Frame Number Test",
+        TYPES.len,
+    );
+    defer progress.end();
+
     try writer.print(
         "\n\n## Time to Frame Number Test\n" 
         ++ "Measures if the correct integer frame number and phase offset can" 
@@ -760,6 +766,18 @@ pub fn floating_point_division_to_integer_test(
     inline for (TYPES)
         |T| 
     {
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{s}",
+            .{@typeName(T)},
+        );
+        const loop_prog = progress.start(
+            buf_prog,
+            rates_as(T).len
+        );
+        defer loop_prog.end();
+        defer progress.completeOne();
+
         try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_TIME_TO_FRAME_N },
@@ -768,6 +786,14 @@ pub fn floating_point_division_to_integer_test(
         for (rates_as(T))
             |rate| 
         {
+            const loop_prog_buf = try std.fmt.bufPrint(
+                &buf, 
+                "{s}: {d} hz",
+                .{@typeName(T), rate},
+            );
+            loop_prog.setName(loop_prog_buf);
+            defer loop_prog.completeOne();
+
             var input_t: T = rate;
             var expected_t: u128 = 1.0;
 
@@ -842,8 +868,15 @@ const TABLE_HEADER_SIN_DRIFT_TEST = (
 
 pub fn sin_big_number_drift_test(
     writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
 ) !void
 {
+    const progress = parent_progress.start(
+        "Time to Frame Number Test",
+        TYPES.len,
+    );
+    defer progress.end();
+
     try writer.print(
         "\n\n## Sin Drift Test\n\n" 
         ++ "Measures the number of iterations of adding two pi to pi/4 before" 
@@ -857,6 +890,18 @@ pub fn sin_big_number_drift_test(
     inline for (TYPES) 
         |T| 
     {
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{s}",
+            .{@typeName(T)},
+        );
+        const loop_prog = progress.start(
+            buf_prog,
+            rates_as(T).len
+        );
+        defer loop_prog.end();
+        defer progress.completeOne();
+
         try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_SIN_DRIFT_TEST },
@@ -865,6 +910,14 @@ pub fn sin_big_number_drift_test(
         for (rates_as(T))
             |rate| 
         {
+            const loop_prog_buf = try std.fmt.bufPrint(
+                &buf, 
+                "{s}: {d} hz",
+                .{@typeName(T), rate},
+            );
+            loop_prog.setName(loop_prog_buf);
+            defer loop_prog.completeOne();
+
             //Initial value of pi/4
             var current_value: T = std.math.pi / 4.0;
             const initial_value = std.math.sin(current_value);
@@ -953,8 +1006,15 @@ const TABLE_HEADER_PHASE_OFFSET = (
 
 pub fn phase_offset_test(
     writer: *std.io.Writer,
+    parent_progress: std.Progress.Node,
 ) !void
 {
+    const progress = parent_progress.start(
+        "Time to Frame Number Test",
+        TYPES.len,
+    );
+    defer progress.end();
+
     try writer.print(
         "\n\nPhase Offset Test\n\n" 
         ++ "Measures the number of iterations of finding the next common "
@@ -963,15 +1023,27 @@ pub fn phase_offset_test(
         .{},
     );
 
+    var buf:[1024]u8 = @splat(0);
+
     inline for (TYPES) 
         |T| 
     {
+        const buf_prog = try std.fmt.bufPrint(
+            &buf, 
+            "{s}",
+            .{@typeName(T)},
+        );
+        const loop_prog = progress.start(
+            buf_prog,
+            picture_rates_as(T).len * picture_rates_as(T).len
+        );
+        defer loop_prog.end();
+        defer progress.completeOne();
+
         try writer.print(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_PHASE_OFFSET },
         );
-
-        var buf : [1024]u8 = undefined;
 
         for (picture_rates_as(T))
             |rate_a| 
@@ -979,6 +1051,14 @@ pub fn phase_offset_test(
             for (picture_rates_as(T))
                 |rate_b| 
             {
+                const loop_prog_buf = try std.fmt.bufPrint(
+                    &buf, 
+                    "{s}: {d} hz x {d}",
+                    .{@typeName(T), rate_a, rate_b},
+                );
+                loop_prog.setName(loop_prog_buf);
+                defer loop_prog.completeOne();
+
                 if (rate_a == rate_b) {
                     continue;
                 }
@@ -1081,6 +1161,9 @@ pub fn main(
         &rational_time_sum_product_scale,
         &floating_point_product_vs_sum_test,
         &floating_point_product_vs_sum_test_scale,
+        &floating_point_division_to_integer_test,
+        &sin_big_number_drift_test,
+        &phase_offset_test,
     };
     
     const progress = parent_progress.start(
@@ -1120,10 +1203,6 @@ pub fn main(
     }
 
     try writer.flush();
-
-    // try floating_point_division_to_integer_test(&writer);
-    // try sin_big_number_drift_test(&writer);
-    // try phase_offset_test(&writer);
 
     std.log.info("wrote report to: {s}\n", .{fpath});
 
