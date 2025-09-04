@@ -76,13 +76,6 @@ pub fn rational_time_test_sum_product(
         2
     );
     defer progress.end();
-
-    try writer.print(
-        "\n\n# Ordinate Precision Exploration\n",
-        .{},
-    );
-    // try writer.flush();
-
     try writer.print(
         "\n\n## Integer Rational Sum/Product Test\n\nReports how many "
         ++ "iterations before the sum of rational integers is not equal to "
@@ -160,8 +153,6 @@ pub fn rational_time_test_sum_product(
             },
         );
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -257,8 +248,6 @@ pub fn rational_time_sum_product_scale(
             },
         );
     }
-
-    try writer.print("\n", .{});
 }
 
 const TABLE_HEADER_RAT_LIMITS = (
@@ -522,8 +511,6 @@ pub fn floating_point_product_vs_sum_test(
             }
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -623,8 +610,6 @@ pub fn floating_point_product_vs_sum_test_scale(
             }
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -788,8 +773,6 @@ pub fn floating_point_division_to_integer_test(
             );
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -889,8 +872,6 @@ pub fn sin_big_number_drift_test(
             );
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -1121,17 +1102,31 @@ pub fn main(
         );
     }
 
+    // document header
+    try writer.print(
+        "# Ordinate Precision Exploration\n",
+        .{},
+    );
+
     for (threads, 0..)
         |thread, i|
     {
         thread.join();
         const txt = try inputs[i].toOwnedSlice();
         _ = try writer.write(txt);
+        _ = try writer.write("\n");
         try writer.flush();
 
         allocator.free(txt);
         inputs[i].deinit();
     }
+
+    try writer.print(
+        "\n## Additional Notes\n\n* f128 tests have an iteartion limit of {d}.  "
+        ++ "Tests that end at that being terminated and not running to "
+        ++ "completion.\n",
+        .{ ITER_MAX },
+    );
 
     try writer.flush();
 
