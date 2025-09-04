@@ -1122,9 +1122,9 @@ pub fn main(
     }
 
     try writer.print(
-        "\n## Additional Notes\n\n* f128 tests have an iteartion limit of {d}.  "
+        "\n## Additional Notes\n\n* Tests have an iteartion limit of {d}.  "
         ++ "Tests that end at that being terminated and not running to "
-        ++ "completion.\n",
+        ++ "completion (in particular tests on f128).\n",
         .{ ITER_MAX },
     );
 
