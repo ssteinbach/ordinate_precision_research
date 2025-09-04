@@ -56,7 +56,7 @@ fn picture_rates_as(
     };
 }
 
-/// Iteration limit (only hit when using f128, which is disabled in the code)
+/// Iteration limit (only hit when using f128)
 const ITER_MAX = 10000000000;
 
 const TABLE_HEADER_RAT_SUM_PROD = (
@@ -106,7 +106,6 @@ pub fn rational_time_test_sum_product(
         );
         const loop_prog = progress.start(buf_prog, 1);
         defer loop_prog.end();
-        defer progress.completeOne();
 
         // value to accumulate
         var current = rational_time.rational32_create(
@@ -197,7 +196,7 @@ pub fn rational_time_sum_product_scale(
 
         const time_increment = rational_time.rational32_div(
             time_increment_in,
-            SCALE
+            SCALE,
         );
 
         const buf_prog = try std.fmt.bufPrint(
@@ -207,7 +206,6 @@ pub fn rational_time_sum_product_scale(
         );
         const loop_prog = progress.start(buf_prog, 1);
         defer loop_prog.end();
-        defer progress.completeOne();
 
         // value to accumulate
         var current = rational_time.rational32_create(
@@ -398,7 +396,6 @@ pub fn integer_rational_limits(
         {
             const inc_ab = rational_time.rational32_add(inc_a, inc_b);
 
-            // const num: f32 = @floatFromInt(inc_ab.num);
             const den: f32 = @floatFromInt(inc_ab.den);
 
             const time_str = try time_string(
@@ -419,70 +416,6 @@ pub fn integer_rational_limits(
             );
         }
     }
-
-    // for (
-    //     [_]rational_time.Rational32{
-    //         rational_time.rational32_create(1001, 24 * 1000),
-    //         rational_time.rational32_create(1001, 30 * 1000),
-    //     }
-    // ) |time_increment| 
-    // {
-    //     // value to accumulate
-    //     var current = rational_time.rational32_create(
-    //         0,
-    //         @intCast(time_increment.den),
-    //     );
-    //
-    //     // loop variables
-    //     var mul = current;
-    //     var is_equal = true;
-    //
-    //     var i : usize = 0;
-    //
-    //     var t_start = try std.time.Timer.start();
-    //     while (
-    //         is_equal
-    //         and i < ITER_MAX
-    //     ) 
-    //     {
-    //         current = rational_time.rational32_add(current, time_increment);
-    //
-    //         i += 1;
-    //         mul = rational_time.rational32_mul(
-    //             time_increment,
-    //             rational_time.rational32_create(@intCast(i), 1),
-    //         );
-    //
-    //         is_equal = rational_time.rational32_equal(current, mul);
-    //     }
-    //
-    //     const compute_time_s = (
-    //         @as(f64, @floatFromInt(t_start.read())) / std.time.ns_per_s
-    //     );
-    //     const cycles_per_s = @as(f64, @floatFromInt(i)) / compute_time_s;
-    //
-    //     const summed_time = (
-    //         @as(f64, @floatFromInt(current.num)) 
-    //         / @as(f64, @floatFromInt(current.den))
-    //     );
-    //
-    //     const time_str = try time_string(&buf, summed_time);
-    //
-    //     writer.print(
-    //         " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
-    //         .{
-    //             time_increment.num, time_increment.den,
-    //             i,
-    //             time_str,
-    //             current.num, current.den,
-    //             mul.num, mul.den,
-    //             cycles_per_s,
-    //         },
-    //     );
-    // }
-    //
-    // writer.print("\n", .{});
-
 }
 
 
@@ -510,7 +443,7 @@ pub fn floating_point_product_vs_sum_test(
         .{},
     );
 
-    var buf: [1024]u8 = @splat(0);
+    var buf: [1024]u8 = undefined;
 
     inline for (TYPES) 
         |T| 
@@ -522,10 +455,9 @@ pub fn floating_point_product_vs_sum_test(
         );
         const loop_prog = progress.start(
             buf_prog,
-            rates_as(T).len
+            rates_as(T).len * 2,
         );
         defer loop_prog.end();
-        defer progress.completeOne();
 
         try writer.print(
             "\n### Type: {s}\n{s}\n",
@@ -535,12 +467,6 @@ pub fn floating_point_product_vs_sum_test(
         for (rates_as(T)) 
             |rate| 
         {
-            const loop_prog_buf = try std.fmt.bufPrint(
-                &buf, 
-                "{s}: {d} hz",
-                .{@typeName(T), rate},
-            );
-            loop_prog.setName(loop_prog_buf);
             const increment: T = @floatCast(1.0 / rate);
 
             for (
@@ -552,6 +478,14 @@ pub fn floating_point_product_vs_sum_test(
                 },
             ) |tolerance| 
             {
+                const loop_prog_buf = try std.fmt.bufPrint(
+                    &buf, 
+                    "{s}: {d} hz [{d:.03}]",
+                    .{@typeName(T), rate, tolerance},
+                );
+                loop_prog.setName(loop_prog_buf);
+                defer loop_prog.completeOne();
+
                 var t_start = try std.time.Timer.start();
 
                 var current: T = 0;
@@ -586,7 +520,6 @@ pub fn floating_point_product_vs_sum_test(
                     .{ rate, iter, tolerance, time_str, cycles_per_s },
                 );
             }
-            defer loop_prog.completeOne();
         }
     }
 
@@ -627,7 +560,6 @@ pub fn floating_point_product_vs_sum_test_scale(
             rates_as(T).len
         );
         defer loop_prog.end();
-        defer progress.completeOne();
 
         try writer.print(
             "\n### Type: {s}\n{s}\n",
@@ -773,7 +705,6 @@ pub fn floating_point_division_to_integer_test(
             rates_as(T).len
         );
         defer loop_prog.end();
-        defer progress.completeOne();
 
         try writer.print(
             "\n### Type: {s}\n{s}\n",
@@ -874,7 +805,7 @@ pub fn sin_big_number_drift_test(
 ) !void
 {
     const progress = parent_progress.start(
-        "Time to Frame Number Test",
+        "sin big number drift test",
         TYPES.len,
     );
     defer progress.end();
@@ -899,10 +830,9 @@ pub fn sin_big_number_drift_test(
         );
         const loop_prog = progress.start(
             buf_prog,
-            rates_as(T).len
+            rates_as(T).len,
         );
         defer loop_prog.end();
-        defer progress.completeOne();
 
         try writer.print(
             "\n### Type: {s}\n{s}\n",
@@ -1012,7 +942,7 @@ pub fn phase_offset_test(
 ) !void
 {
     const progress = parent_progress.start(
-        "Time to Frame Number Test",
+        "phase offset test",
         TYPES.len,
     );
     defer progress.end();
@@ -1025,7 +955,7 @@ pub fn phase_offset_test(
         .{},
     );
 
-    var buf:[1024]u8 = @splat(0);
+    var buf:[1024]u8 = undefined;
 
     inline for (TYPES) 
         |T| 
@@ -1040,7 +970,6 @@ pub fn phase_offset_test(
             picture_rates_as(T).len * picture_rates_as(T).len
         );
         defer loop_prog.end();
-        defer progress.completeOne();
 
         try writer.print(
             "\n### Type: {s}\n{s}\n",
@@ -1143,7 +1072,7 @@ pub fn main(
 
     const fpath = std.os.argv[1];
 
-    var buf:[1024]u8 = @splat(0);
+    var buf:[1024]u8 = undefined;
 
     var outfile = try std.fs.cwd().createFileZ(
         fpath,
