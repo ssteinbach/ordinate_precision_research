@@ -141,9 +141,12 @@ Test Case: Demonstrate exacerbation of error resulting from mixed mathematical o
 --------------------------------------------------------------------------------
 ## Running the Experiments
 
-1. Install Zig 0.13.0
+1. Install Zig 0.15.1
 2. run:
-`zig test -Isrc -OReleaseSafe src/main.zig`
+`zig build run -Doptimize=ReleaseSafe -- results.md`
+or, to include the f128 type in tests as well (*WARNING: very time consuming
+tests*)
+`zig build run -Doptimize=ReleaseSafe -DENABLED_F128=true -- results.md`
 or
 `make all`
 
@@ -181,8 +184,8 @@ See: [results.md](results.md)
 * For a system that uses a floating-point based number, it is possible to
   compute the accuracy limits imposed by the system and the number bit width.
 * For systems that are using integers, conversions to floating point numbers
-  are still subject to the limits of floating point accuracy.  If you need
-  to synchronize a time value that is past the floating point accuracy limit, it
+  are still subject to the limits of floating point accuracy.  If you need to
+  synchronize a time value that is past the floating point accuracy limit, it
   doesn't matter if you compute the input with integer accuracy if you still
   need to use a floating point number without sufficient accuracy to convert
   into the other space such as occurs when fetching an audio sample during a
