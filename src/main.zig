@@ -929,7 +929,7 @@ pub fn phase_offset_test(
     defer progress.end();
 
     try writer.print(
-        "\n\nPhase Offset Test\n\n" 
+        "\n\n## Phase Offset Test\n\n" 
         ++ "Measures the number of iterations of finding the next common "
         ++ "multiple of two rates such that the sum of each of the "
         ++ "rates does not equal. Will terminate after 2 days of time.\n",
