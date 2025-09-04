@@ -890,27 +890,6 @@ fn least_common_multiple(
     );
 }
 
-fn next_greater_multiple(
-    writer: *std.io.Writer,
-    comptime T: type,
-    current: T,
-    a: T,
-    b: T
-) !T
-{
-    const lcm = least_common_multiple(T, a, b);
-
-    if (@mod(current, lcm) == 0) {
-        return current + lcm;
-    }
-    try writer.print(
-        "mod: {d} current: {d} lcm2: {d}\n",
-        .{ @mod(current, lcm), current, lcm }
-    );
-    return (@ceil(current / lcm)) * lcm;
-}
-
-
 const TABLE_HEADER_PHASE_OFFSET = (
     \\ 
     \\ | rate_a | rate_b | iterations | next multiple | current_a | current_b | delta |
