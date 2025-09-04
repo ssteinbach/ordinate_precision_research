@@ -7,25 +7,22 @@
 
 const std = @import("std");
 
+const build_options = @import("build_options");
+
 const rational_time = @cImport(
     {
         @cInclude("rational_time.c");
     }
 );
 
-// test {
-//     // fetch tests for c library
-//     _ = @import("rational_tests.zig");
-// }
-
-
 /// Types to test.  f128 is inconsistently supported outside of zig.  Some
 /// preliminary testing finds it to be ~100x slower than f64.
-const TYPES = &.{
-    f32,
-    f64,
-    // f128,
-};
+const TYPES = (
+    if (build_options.ENABLED_F128)
+        &.{ f32, f64, f128 }
+    else 
+        &.{ f32, f64, }
+);
 
 /// builds the standard rate array
 fn rates_as(
@@ -782,6 +779,11 @@ pub fn floating_point_division_to_integer_test(
             "\n### Type: {s}\n{s}\n",
             .{ @typeName(T), TABLE_HEADER_TIME_TO_FRAME_N },
         );
+
+        if (T == f128) {
+            // f128 causes an integer overflow
+            continue;
+        }
 
         for (rates_as(T))
             |rate| 

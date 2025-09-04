@@ -4,6 +4,21 @@ pub fn build(
     b: *std.Build,
 ) void 
 {
+    const build_options = b.addOptions();
+    {
+        const ENABLED_F128 = b.option(
+            bool,
+            "ENABLED_F128",
+            "Enable the f128 tests.  These are very slow.",
+        ) orelse false;
+        build_options.addOption(
+            bool,
+            "ENABLED_F128",
+            ENABLED_F128,
+        );
+    }
+    const build_options_mod = build_options.createModule();
+
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -12,6 +27,9 @@ pub fn build(
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
+            .imports = &.{
+                .{ .name = "build_options", .module = build_options_mod},
+            },
         }
     );
     exe_mod.addIncludePath(b.path("src"));
@@ -49,6 +67,12 @@ pub fn build(
             .root_source_file = b.path("src/rational_tests.zig"),
             .target = target,
             .optimize = optimize,
+            .imports = &.{
+                .{
+                    .name = "build_options",
+                    .module = build_options_mod
+                },
+            },
         },
     );
     rational_mod.addIncludePath(b.path("src"));
