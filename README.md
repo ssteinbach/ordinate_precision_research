@@ -13,6 +13,7 @@ We show the largest values representable, and when the math on various reprsenta
 ### TL/DR
 
 See the machine generated results this project generates: [results.md](results.md)
+...or see the compact conclusions from our analysis of the results: [Conclusions](#Conclusions)
 
 --------------------------------------------------------------------------------
 ## Introduction
