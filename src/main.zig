@@ -239,7 +239,7 @@ pub fn rational_time_test_sum_product_w_scale(
         const time_str = try time_string(&buf, summed_time);
 
         try writer.print(
-            " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |a\n",
+            " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} | \n",
             .{
                 time_increment.num, time_increment.den,
                 i,
@@ -282,7 +282,7 @@ pub fn number_type_limits(
             @as(f64, @floatFromInt(max_int)) / 192000.0,
         );
         try writer.print(
-            " | {s} | {d} | {s} |b\n",
+            " | {s} | {d} | {s} | \n",
             .{ 
                 @typeName(T),
                 max_int,
@@ -301,7 +301,7 @@ pub fn number_type_limits(
             @as(f64, @floatCast(float_max)) / 24.0,
         );
         try writer.print(
-            " | {s} | {d} | {s} |c\n",
+            " | {s} | {d} | {s} | \n",
             .{ 
                 @typeName(T),
                 float_max,
@@ -422,6 +422,7 @@ const TABLE_HEADER_FP_SUM_PRODUCT = (
 pub fn floating_point_product_vs_sum_test(
     io: std.Io,
     writer: *std.Io.Writer,
+    parent_progress: std.Progress.Node,
 ) !void
 {
     try writer.print(
@@ -430,6 +431,9 @@ pub fn floating_point_product_vs_sum_test(
         ++ " frame\n",
         .{},
     );
+
+    const progress = parent_progress.start("Sum/Product equality", TYPES.len);
+    defer progress.end();
 
     var buf: [1024]u8 = undefined;
 
@@ -898,7 +902,7 @@ pub fn phase_offset_test(
 ) !void
 {
     try writer.print(
-        "\n\nPhase Offset Test\n\n" 
+        "\n\n## Phase Offset Test\n\n" 
         ++ "Measures the number of iterations of finding the next common "
         ++ "multiple of two rates such that the sum of each of the "
         ++ "rates does not equal. Will terminate after 2 days of time.\n",
@@ -1030,12 +1034,13 @@ pub fn main(
     const TESTS= &.{
         &rational_time_test_sum_product,
         &rational_time_test_sum_product_w_scale,
-        &number_type_limits,
-        &integer_rational_limits,
+        &floating_point_product_vs_sum_test,
         &floating_point_product_vs_sum_test_w_scale,
         &floating_point_division_to_integer,
         &sin_big_number_drift,
+        // &number_type_limits,
         &phase_offset_test,
+        &integer_rational_limits,
     };
     const parent_progress = std.Progress.start(io, 
         .{
@@ -1078,6 +1083,7 @@ pub fn main(
         |thread, i|
     {
         thread.join();
+
         const txt = try inputs[i].toOwnedSlice();
         _ = try root_writer_iface.write(txt);
         _ = try root_writer_iface.write("\n");
