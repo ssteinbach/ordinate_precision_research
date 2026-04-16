@@ -68,11 +68,6 @@ pub fn rational_time_test_sum_product(
 ) !void
 {
     try writer.print(
-        "\n\n# Ordinate Precision Exploration\n",
-        .{},
-    );
-
-    try writer.print(
         "\n\n## Integer Rational Sum/Product Test\n\nReports how many "
         ++ "iterations before the sum of rational integers is not equal to "
         ++ "the product for NTSC rates.\n{s}\n",
@@ -158,8 +153,6 @@ pub fn rational_time_test_sum_product(
             },
         );
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -226,7 +219,7 @@ pub fn rational_time_test_sum_product_w_scale(
             is_equal = rational_time.rational32_equal(current, mul);
         }
 
-                const t_stop = std.Io.Timestamp.now(io, .real);
+        const t_stop = std.Io.Timestamp.now(io, .real);
 
         // Nanosecond resolution but scoped to seconds.
         var compute_time_s:f64 = @floatFromInt(
@@ -238,7 +231,6 @@ pub fn rational_time_test_sum_product_w_scale(
         compute_time_s /= std.time.ns_per_s;
         const cycles_per_s = @as(f64, @floatFromInt(i)) / compute_time_s;
 
-
         const summed_time = (
             @as(f64, @floatFromInt(current.num)) 
             / @as(f64, @floatFromInt(current.den))
@@ -247,7 +239,7 @@ pub fn rational_time_test_sum_product_w_scale(
         const time_str = try time_string(&buf, summed_time);
 
         try writer.print(
-            " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
+            " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |a\n",
             .{
                 time_increment.num, time_increment.den,
                 i,
@@ -258,8 +250,6 @@ pub fn rational_time_test_sum_product_w_scale(
             },
         );
     }
-
-    try writer.print("\n", .{});
 }
 
 const TABLE_HEADER_RAT_LIMITS = (
@@ -292,7 +282,7 @@ pub fn number_type_limits(
             @as(f64, @floatFromInt(max_int)) / 192000.0,
         );
         try writer.print(
-            " | {s} | {d} | {s} | \n",
+            " | {s} | {d} | {s} |b\n",
             .{ 
                 @typeName(T),
                 max_int,
@@ -311,7 +301,7 @@ pub fn number_type_limits(
             @as(f64, @floatCast(float_max)) / 24.0,
         );
         try writer.print(
-            " | {s} | {d} | {s} | \n",
+            " | {s} | {d} | {s} |c\n",
             .{ 
                 @typeName(T),
                 float_max,
@@ -420,75 +410,6 @@ pub fn integer_rational_limits(
             );
         }
     }
-    // for (
-    //     [_]rational_time.Rational32{
-    //         rational_time.rational32_create(1001, 24 * 1000),
-    //         rational_time.rational32_create(1001, 30 * 1000),
-    //     }
-    // ) |time_increment| 
-    // {
-    //     // value to accumulate
-    //     var current = rational_time.rational32_create(
-    //         0,
-    //         @intCast(time_increment.den),
-    //     );
-    //
-    //     // loop variables
-    //     var mul = current;
-    //     var is_equal = true;
-    //
-    //     var i : usize = 0;
-    //
-    //     const t_start = std.Io.Timestamp.now(io, .real);
-    //     while (
-    //         is_equal
-    //         and i < ITER_MAX
-    //     ) 
-    //     {
-    //         current = rational_time.rational32_add(current, time_increment);
-    //
-    //         i += 1;
-    //         mul = rational_time.rational32_mul(
-    //             time_increment,
-    //             rational_time.rational32_create(@intCast(i), 1),
-    //         );
-    //
-    //         is_equal = rational_time.rational32_equal(current, mul);
-    //     }
-    //
-    //             const t_stop = std.Io.Timestamp.now(io, .real);
-    //
-    // Nanosecond resolution but scoped to seconds.
-    // var compute_time_s:f64 = @floatFromInt(
-    //     std.Io.Timestamp.durationTo(
-    //         t_start,
-    //         t_stop,
-    //     ).toNanoseconds()
-    // );
-    // compute_time_s /= std.time.ns_per_s;
-    //
-    //
-    //     const summed_time = (
-    //         @as(f64, @floatFromInt(current.num)) 
-    //         / @as(f64, @floatFromInt(current.den))
-    //     );
-    //
-    //     const time_str = try time_string(&buf, summed_time);
-    //
-    //     try writer.print(
-    //         " | {d}/{d} | {d} | {s} | {d}/{d} | {d}/{d} | {e:.2} |\n",
-    //         .{
-    //             time_increment.num, time_increment.den,
-    //             i,
-    //             time_str,
-    //             current.num, current.den,
-    //             mul.num, mul.den,
-    //             cycles_per_s,
-    //         },
-    //     );
-    // }
-    //
-    // try writer.print("\n", .{});
 }
 
 
@@ -577,7 +498,6 @@ pub fn floating_point_product_vs_sum_test(
             }
         }
     }
-    try writer.print("\n", .{});
 }
 
 
@@ -677,8 +597,6 @@ pub fn floating_point_product_vs_sum_test_w_scale(
             }
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -836,8 +754,6 @@ pub fn floating_point_division_to_integer(
             );
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -930,8 +846,6 @@ pub fn sin_big_number_drift(
             );
         }
     }
-
-    try writer.print("\n", .{});
 }
 
 
@@ -1108,8 +1022,8 @@ pub fn main(
         .{},
     );
 
-    var writer_parent = outfile.writer(io, &buf);
-    const writer = &writer_parent.interface;
+    var outfile_writer = outfile.writer(io, &buf);
+    const root_writer_iface = &outfile_writer.interface;
 
     defer outfile.close(io);
 
@@ -1145,18 +1059,17 @@ pub fn main(
         |test_fn, i|
     {
         // configure the writer
-        inputs[i] = std.Io.Writer.Allocating.init(allocator);   
-        const thread_writer = &inputs[i].writer;
+        inputs[i] = .init(allocator);   
 
         threads[i] = try std.Thread.spawn(
             .{},
             test_fn.*,
-            .{ io, thread_writer, progress }
+            .{ io, &inputs[i].writer, progress }
         );
     }
 
     // document header
-    try writer.print(
+    try root_writer_iface.print(
         "# Ordinate Precision Exploration\n",
         .{},
     );
@@ -1166,51 +1079,24 @@ pub fn main(
     {
         thread.join();
         const txt = try inputs[i].toOwnedSlice();
-        _ = try writer.write(txt);
-        _ = try writer.write("\n");
-        try writer.flush();
+        _ = try root_writer_iface.write(txt);
+        _ = try root_writer_iface.write("\n");
+        try root_writer_iface.flush();
 
         allocator.free(txt);
         inputs[i].deinit();
     }
 
-    try writer.print(
+    try root_writer_iface.print(
         "\n## Additional Notes\n\n* Tests have an iteartion limit of {d}.  "
         ++ "Tests that end at that being terminated and not running to "
         ++ "completion (in particular tests on f128).\n",
         .{ ITER_MAX },
     );
 
-    try writer.flush();
+    try root_writer_iface.flush();
 
     std.log.info("wrote report to: {s}\n", .{fpath});
 
     return 0;
-// =======
-// pub fn main(
-//     init: std.process.Init,
-// ) !void
-// {
-//     const io = init.io;
-//
-//     const TESTS = [_]fn(std.Io, *std.Io.Writer) anyerror!void {
-//         rational_time_test_sum_product,
-//         rational_time_test_sum_product_w_scale,
-//         number_type_limits,
-//         integer_rational_limits,
-//         floating_point_product_vs_sum_test_w_scale,
-//         floating_point_division_to_integer,
-//         sin_big_number_drift,
-//         phase_offset_test,
-//     };
-//
-//     var buf: [1024]u8 = undefined;
-//     var stdout = std.Io.File.stdout().writer(init.io, &buf);
-//
-//     inline for (&TESTS)
-//         |test_fn|
-//     {
-//         try test_fn(io, &stdout.interface);
-//     }
-// >>>>>>> 13853b0 (checkpoint 0.16.0 work)
 }
