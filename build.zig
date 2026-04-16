@@ -22,16 +22,39 @@ pub fn build(
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // for zls -- "check" step
+    const check_step = b.step(
+        "check",
+        "Check if everything compiles",
+    );
+
+    // c library
+    const translate_c_lib = b.addTranslateC(
+        .{
+            .optimize = optimize,
+            .target = target,
+            .root_source_file = b.path("src/rational_time.c"),
+        }
+    );
+
     const exe_mod = b.createModule(
         .{
             .root_source_file = b.path("src/main.zig"),
             .target = target,
             .optimize = optimize,
             .imports = &.{
-                .{ .name = "build_options", .module = build_options_mod},
+                .{
+                    .name = "build_options",
+                    .module = build_options_mod,
+                },
+                .{
+                    .name = "rational_time_c",
+                    .module = translate_c_lib.createModule(), 
+                },
             },
         }
     );
+
     exe_mod.addIncludePath(b.path("src"));
 
     const exe = b.addExecutable(
@@ -41,9 +64,12 @@ pub fn build(
         }
     );
 
+    check_step.dependOn(&exe.step);
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
+
     run_cmd.step.dependOn(b.getInstallStep());
 
     if (b.args) 

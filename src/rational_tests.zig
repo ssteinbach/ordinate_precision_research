@@ -2,11 +2,7 @@
 
 const std = @import("std");
 
-const rational_time = @cImport(
-    {
-        @cInclude("rational_time.c");
-    }
-);
+const rational_time = @import("rational_time_c");
 
 test "rational_time:gcd" 
 {
