@@ -37,6 +37,8 @@ pub fn build(
         }
     );
 
+    translate_c_lib.addIncludePath(b.path("src"));
+
     const exe_mod = b.createModule(
         .{
             .root_source_file = b.path("src/main.zig"),
@@ -54,8 +56,6 @@ pub fn build(
             },
         }
     );
-
-    exe_mod.addIncludePath(b.path("src"));
 
     const exe = b.addExecutable(
         .{
