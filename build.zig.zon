@@ -1,6 +1,6 @@
 .{
     .name = .ordinate_precision_research,
-    .version = "0.0.0",
+    .version = "1.0.0",
 
     // Changing this has security and trust implications.
     .fingerprint = 0x6df300d104a843c6, 
