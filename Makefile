@@ -6,6 +6,6 @@ all: update
 	cat results.md
 
 update:
-	zig build run --release=safe -- results.md
+	zig build run --release=fast -- results.md
 
 .PHONY: update all
