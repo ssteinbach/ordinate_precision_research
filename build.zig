@@ -98,6 +98,10 @@ pub fn build(
                     .name = "build_options",
                     .module = build_options_mod
                 },
+                .{
+                    .name = "rational_time_c",
+                    .module = translate_c_lib.createModule(), 
+                },
             },
         },
     );
